@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Ethiopic fallback only: Poppins stays the UI font, these glyphs fill in for Amharic text. */
+@font-face {
+    font-family: "Noto Sans Ethiopic";
+    src: url("/fonts/NotoSansEthiopic-Regular.ttf") format("truetype");
+    font-weight: 100 500;
+    font-display: swap;
+    unicode-range: U+1200-139F, U+2D80-2DDF, U+AB00-AB2F;
+}
+
+@font-face {
+    font-family: "Noto Sans Ethiopic";
+    src: url("/fonts/NotoSansEthiopic-Bold.ttf") format("truetype");
+    font-weight: 600 900;
+    font-display: swap;
+    unicode-range: U+1200-139F, U+2D80-2DDF, U+AB00-AB2F;
+}
+
+@theme {
+    --font-poppins: "Poppins", "Noto Sans Ethiopic", sans-serif;
+
+    /* Transly orange scale (replaces Tailwind's default orange). */
+    --color-orange-50: #FFF4EB;
+    --color-orange-100: #FFE4D0;
+    --color-orange-200: #FFC49E;
+    --color-orange-300: #FFA36B;
+    --color-orange-400: #FF8533;
+    --color-orange-500: #FF6B00;
+    --color-orange-600: #E85D00;
+    --color-orange-700: #C94F00;
+    --color-orange-800: #A83F00;
+    --color-orange-900: #7C3000;
+    --color-midnight: #171923;
+}
+
+/* Orange & Midnight, light theme. */
+:root {
+    --bg: #F8FAFC;
+    --bg-2: #F1F5F9;
+    --surface: #FFFFFF;
+    --elevated: #FFFFFF;
+    --hover: #F1F5F9;
+    --ink: #171923;
+    --ink-2: #64748B;
+    --muted: #94A3B8;
+    --disabled: #CBD5E1;
+    --line: #E2E8F0;
+    --line-strong: #CBD5E1;
+
+    --brand: #FF6B00;
+    --brand-soft: #FFF4EB;
+    --brand-soft-2: #FFE4D0;
+    --brand-ink: #C94F00;
+    --primary: #C94F00;
+    --primary-hover: #A83F00;
+    --primary-active: #7C3000;
+    --on-primary: #FFFFFF;
+    --secondary: #FFFFFF;
+    --secondary-hover: #F1F5F9;
+    --input: #FFFFFF;
+    --input-line: #CBD5E1;
+    --focus: #C94F00;
+    --ring: #FFC49E;
+
+    --success: #15803D;
+    --success-bg: #DCFCE7;
+    --warn: #B45309;
+    --warn-bg: #FEF3C7;
+    --danger: #DC2626;
+    --danger-bg: #FEE2E2;
+    --info: #2563EB;
+    --info-bg: #DBEAFE;
+
+    color-scheme: light;
+}
+
+.dark {
+    --bg: #0D111B;
+    --bg-2: #151B28;
+    --surface: #151B28;
+    --elevated: #1D2635;
+    --hover: #263244;
+    --ink: #F1F5F9;
+    --ink-2: #CBD5E1;
+    --muted: #94A3B8;
+    --disabled: #64748B;
+    --line: #30394A;
+    --line-strong: #475569;
+
+    --brand: #FF6B00;
+    --brand-soft: #2A1D14;
+    --brand-soft-2: #3A2412;
+    --brand-ink: #FF8533;
+    --primary: #FF8533;
+    --primary-hover: #FF9A57;
+    --primary-active: #E85D00;
+    --on-primary: #171923;
+    --secondary: #1D2635;
+    --secondary-hover: #263244;
+    --input: #151B28;
+    --input-line: #475569;
+    --focus: #FF8533;
+    --ring: #FF8533;
+
+    --success: #4ADE80;
+    --success-bg: #142B20;
+    --warn: #FBBF24;
+    --warn-bg: #352812;
+    --danger: #F87171;
+    --danger-bg: #351A20;
+    --info: #60A5FA;
+    --info-bg: #172B45;
+
+    color-scheme: dark;
+}
+
+@theme inline {
+    --color-bg: var(--bg);
+    --color-bg-2: var(--bg-2);
+    --color-surface: var(--surface);
+    --color-elevated: var(--elevated);
+    --color-hover: var(--hover);
+    --color-ink: var(--ink);
+    --color-ink-2: var(--ink-2);
+    --color-muted: var(--muted);
+    --color-disabled: var(--disabled);
+    --color-line: var(--line);
+    --color-line-strong: var(--line-strong);
+    --color-brand: var(--brand);
+    --color-brand-soft: var(--brand-soft);
+    --color-brand-soft-2: var(--brand-soft-2);
+    --color-brand-ink: var(--brand-ink);
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-primary-active: var(--primary-active);
+    --color-on-primary: var(--on-primary);
+    --color-secondary: var(--secondary);
+    --color-secondary-hover: var(--secondary-hover);
+    --color-input: var(--input);
+    --color-input-line: var(--input-line);
+    --color-focus: var(--focus);
+    --color-ring: var(--ring);
+    --color-success: var(--success);
+    --color-success-bg: var(--success-bg);
+    --color-warn: var(--warn);
+    --color-warn-bg: var(--warn-bg);
+    --color-danger: var(--danger);
+    --color-danger-bg: var(--danger-bg);
+    --color-info: var(--info);
+    --color-info-bg: var(--info-bg);
+}
+
+body {
+    @apply bg-bg text-ink text-sm font-poppins antialiased;
+}
+
+button {
+    @apply cursor-pointer;
+}
+
+button:disabled {
+    @apply cursor-not-allowed;
+}
+
+/* Soft orange shapes behind app and auth screens (decorative only). */
+.app-backdrop {
+    background-image:
+        radial-gradient(38rem 26rem at 78% -6%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 70%),
+        radial-gradient(30rem 22rem at 108% 38%, color-mix(in srgb, var(--brand) 10%, transparent), transparent 70%),
+        radial-gradient(34rem 22rem at 62% 112%, color-mix(in srgb, var(--brand) 12%, transparent), transparent 70%);
+    background-attachment: fixed;
+}
+
+.dot-grid {
+    background-image: radial-gradient(color-mix(in srgb, var(--brand) 55%, transparent) 1.5px, transparent 1.5px);
+    background-size: 14px 14px;
+}
+
+/* A document page is always white with dark text, in either theme. */
+.doc-paper {
+    background-color: #FFFFFF;
+    color: #171923;
+    color-scheme: light;
+}
+
+/* Tiled "PREVIEW" so it stays visible however long the page is. Removed only once the document is issued. */
+.preview-watermark {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='220'><text x='160' y='120' text-anchor='middle' font-family='sans-serif' font-size='44' font-weight='800' letter-spacing='6' fill='rgb(220,38,38)' fill-opacity='0.13' transform='rotate(-25 160 110)'>PREVIEW</text></svg>");
+    background-repeat: repeat;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+}
