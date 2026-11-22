@@ -1,0 +1,12 @@
+# The web app lives in client/ (Vite). The repo root has no "dev" or "build"
+# script, so the build installs and builds the client explicitly.
+[build]
+  command = "npm ci --prefix client && npm run build --prefix client"
+  publish = "client/dist"
+
+# The /api/* handlers (server/api) run as a Netlify Function, see
+# netlify/functions/api.mts. Every other path falls back to the SPA.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
