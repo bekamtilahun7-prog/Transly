@@ -6,8 +6,8 @@ Transly is built as a monorepo to allow two developers to work independently wit
 
 ## Directory Structure & Ownership
 
-- **`apps/web/` (Nugusa):** React + Vite frontend. Contains all UI, routes, and state management.
-- **`supabase/` (Bekam):** Database migrations and Edge Functions (Vercel Serverless).
+- **`client/`:** React + Vite frontend (port 5173). Contains all UI, routes, and state management.
+- **`server/`:** Vercel Node `/api` handlers, local `npm run dev:api` (port 3000), and Postgres migrations under `server/supabase/`.
 - **`shared/contract.ts` (Lead only):** The single source of truth for TypeScript types and API request/response structures.
 - **`docs/` (Lead):** Documentation for the team.
 
@@ -22,5 +22,5 @@ Transly is built as a monorepo to allow two developers to work independently wit
 ## Development Rules
 
 - **No direct pushes to `main`:** All work must happen on `feature/backend-ai` or `feature/frontend-documents`.
-- **Mocks:** Nugusa uses `VITE_USE_MOCKS=true` in her `.env` to test the UI before Bekam's backend is ready.
+- **Mocks:** `client/.env` uses `VITE_USE_MOCKS=true` until the API on port 3000 and Supabase are ready. Then set it to `false`.
 - **No Secrets:** `.env` is in `.gitignore`. Never commit API keys.

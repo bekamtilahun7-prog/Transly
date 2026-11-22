@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["vite/client"],
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "noEmit": true,
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    /* The landing page keeps the prebuilt template's .jsx files; they are imported, not type-checked. */
+    "allowJs": true,
+    "checkJs": false,
+
+    /* shared/contract.ts lives at the repo root (lead-owned). Types only. */
+    "paths": { "@shared/*": ["../shared/*"] }
+  },
+  "include": ["src", "../shared/contract.ts"]
+}
