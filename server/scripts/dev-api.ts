@@ -9,7 +9,7 @@
 
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import forgotPassword from '../api/auth/forgot';
+import registerAccount from '../api/auth/register';
 import extract from '../api/extract';
 import issueComplete from '../api/issue/complete';
 import issueReserve from '../api/issue/reserve';
@@ -23,7 +23,7 @@ import verify from '../api/verify/[id]';
 type Handler = (req: VercelRequest, res: VercelResponse) => Promise<void>;
 
 const FIXED: Record<string, Handler> = {
-  '/api/auth/forgot': forgotPassword,
+  '/api/auth/register': registerAccount,
   '/api/extract': extract,
   '/api/translate': translate,
   '/api/review/request': reviewRequest,

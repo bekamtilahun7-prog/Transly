@@ -93,9 +93,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const [nameError, setNameError] = useState<string | null>(null)
   const [confirmError, setConfirmError] = useState<string | null>(null)
 
-  const locState = loc.state as { from?: string; reset?: boolean } | null
-  const from = locState?.from
-  const resetOk = Boolean(locState?.reset)
+  const from = (loc.state as { from?: string } | null)?.from
   const fallback = hasCompletedPlanChoice() ? '/dashboard' : afterAuthPath()
   const next = from && !from.startsWith('/login') && !from.startsWith('/register') ? from : fallback
 
@@ -166,14 +164,6 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
             </Alert>
           </div>
         )}
-        {resetOk && mode === 'login' && !error && (
-          <div className="mb-4">
-            <Alert tone="success" title={t('auth.resetOk')}>
-              {t('auth.resetOkBody')}
-            </Alert>
-          </div>
-        )}
-
         <div className="space-y-4">
           <AuthField
             id={ids.name}
@@ -238,14 +228,6 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
               error={confirmError}
               disabled={busy}
             />
-          )}
-
-          {mode === 'login' && (
-            <p className="text-right">
-              <Link to="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-700">
-                {t('auth.forgot')}
-              </Link>
-            </p>
           )}
 
           <Button

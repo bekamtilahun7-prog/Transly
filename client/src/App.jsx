@@ -2,9 +2,6 @@ import { Outlet, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import VerifyOtpPage from "./pages/VerifyOtpPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
 import DashboardPage from "./pages/DashboardPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import UploadPage from "./pages/UploadPage";
@@ -65,10 +62,7 @@ export default function App() {
       <Route element={<RedirectIfAuthed />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       </Route>
-      <Route path="/verify-otp" element={<VerifyOtpPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route element={<PublicShell />}>
         <Route path="/v/:id" element={<VerificationPage />} />
         <Route path="/pricing" element={<PricingPage />} />

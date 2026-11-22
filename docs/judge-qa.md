@@ -133,7 +133,7 @@ Canned blocks (sample Amharic/English). Translation is prefixed `[MOCK]`. It pro
 
 ### If I create an account, is it a real user?
 
-In mock: any email/password; session in `transly.mock.user`. Email containing `translator` gets the translator role. OTP and forgot-password exist in the mock auth flow.
+In mock: any email/password; session in `transly.mock.user`. Email containing `translator` gets the translator role. Sign-up stores the password and sign-in checks it. There is no OTP or password-reset email.
 
 ### Did you fake the AI for the judges?
 
@@ -240,7 +240,7 @@ Serverless functions bypass RLS and **check ownership themselves**. They downloa
 
 ### How does login work (real mode)?
 
-Supabase Auth. New users get a `customer` profile via trigger `handle_new_user`. Mock mode: any password; OTP screens exist for register/reset in the UI.
+Supabase Auth. `POST /api/auth/register` creates a confirmed user (password stored as a hash) and the `handle_new_user` trigger adds a `customer` profile. Sign-in checks that password. There is no OTP screen.
 
 ### Can I promote myself to translator in the app?
 
