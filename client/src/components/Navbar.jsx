@@ -2,6 +2,7 @@ import { ArrowRightIcon, MenuIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { navLinks } from "../data/navLinks";
+import { AccessibilityLauncher } from "./accessibility/AccessibilityLauncher";
 import { Logo } from "./common/Logo";
 import { ThemeToggle } from "./common/ThemeToggle";
 
@@ -19,6 +20,7 @@ export default function Navbar() {
 
   return (
     <nav
+      data-no-speak
       className={`flex items-center justify-between fixed z-50 top-0 w-full px-6 md:px-16 lg:px-24 xl:px-32 py-4 border-b border-line bg-bg/70 ${openMobileMenu ? "bg-bg/90" : "backdrop-blur"}`}
     >
       <Link to="/" aria-label="Transly home" className="text-ink">
@@ -70,6 +72,7 @@ export default function Navbar() {
         </button>
       </div>
       <div className="flex items-center gap-3 sm:gap-4">
+        <AccessibilityLauncher />
         <ThemeToggle />
         <Link
           to="/login"

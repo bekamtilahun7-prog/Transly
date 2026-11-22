@@ -3,7 +3,7 @@ export default function SectionTitle({ text1, text2, text3 }) {
         <>
             <p className="text-center font-medium text-orange-500 mt-28">
                 <span className="inline-flex items-center gap-2">
-                    <span className="size-2 rounded-full bg-orange-500" aria-hidden />
+                    <span className="home-loop home-loop-pulse size-2 rounded-full bg-orange-500" aria-hidden />
                     {text1}
                 </span>
             </p>

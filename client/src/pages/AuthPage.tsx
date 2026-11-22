@@ -1,96 +1,12 @@
-import { ArrowLeft, Eye, EyeOff, FileText, Lock, LogIn, Mail, UserPlus, UserRound } from 'lucide-react'
-import { useId, useState, type FormEvent, type ReactNode } from 'react'
+import { ArrowLeft, FileText, Lock, LogIn, Mail, UserPlus, UserRound } from 'lucide-react'
+import { useId, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { AuthField, AuthShell, PasswordField, authInputClass } from '../components/auth/AuthShell'
 import { Alert } from '../components/common/Alert'
 import { Button } from '../components/common/Button'
 import { Logo } from '../components/common/Logo'
-import { ThemeToggle } from '../components/common/ThemeToggle'
 import { useAuth } from '../context/AuthContext'
 import { afterAuthPath, hasCompletedPlanChoice } from '../lib/subscription'
-
-const inputClass =
-  'block w-full min-h-11 rounded-xl border border-input-line bg-input px-3.5 text-sm text-ink placeholder:text-muted ' +
-  'transition duration-150 focus:outline-none focus:border-focus focus:ring-2 focus:ring-ring/60 ' +
-  'disabled:opacity-60 disabled:cursor-not-allowed'
-
-function AuthField({
-  id,
-  label,
-  icon,
-  error,
-  children,
-}: {
-  id: string
-  label: string
-  icon: ReactNode
-  error?: string | null
-  children: ReactNode
-}) {
-  return (
-    <div>
-      <label htmlFor={id} className="mb-1.5 flex items-center gap-2 text-sm font-medium text-ink">
-        <span className="text-muted">{icon}</span>
-        {label}
-      </label>
-      {children}
-      {error && (
-        <p id={`${id}-error`} className="mt-1.5 text-xs text-red-600">
-          {error}
-        </p>
-      )}
-    </div>
-  )
-}
-
-function PasswordField({
-  id,
-  label,
-  value,
-  onChange,
-  placeholder,
-  autoComplete,
-  error,
-  disabled,
-}: {
-  id: string
-  label: string
-  value: string
-  onChange: (v: string) => void
-  placeholder: string
-  autoComplete: string
-  error?: string | null
-  disabled?: boolean
-}) {
-  const [show, setShow] = useState(false)
-  return (
-    <AuthField id={id} label={label} icon={<Lock size={16} aria-hidden />} error={error}>
-      <div className="relative">
-        <input
-          id={id}
-          className={`${inputClass} pr-11`}
-          type={show ? 'text' : 'password'}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          autoComplete={autoComplete}
-          disabled={disabled}
-          required
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? `${id}-error` : undefined}
-        />
-        <button
-          type="button"
-          onClick={() => setShow((s) => !s)}
-          aria-label={show ? 'Hide password' : 'Show password'}
-          aria-pressed={show}
-          className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted transition duration-150 hover:bg-hover hover:text-ink"
-        >
-          {show ? <EyeOff size={16} aria-hidden /> : <Eye size={16} aria-hidden />}
-        </button>
-      </div>
-    </AuthField>
-  )
-}
 
 function Sparkles() {
   return (
@@ -132,35 +48,6 @@ function RegisterArt() {
   )
 }
 
-function AuthShell({ children }: { children: ReactNode }) {
-  return (
-    <div className="relative min-h-dvh overflow-hidden bg-bg text-ink">
-      <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
-        <ThemeToggle />
-      </div>
-      <div
-        aria-hidden="true"
-        className="dot-grid pointer-events-none absolute left-0 top-16 h-56 w-36 opacity-50 [mask-image:linear-gradient(to_right,black,transparent)]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-24 -top-16 size-80 rounded-full bg-orange-200/55 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-24 -left-16 size-72 rounded-full bg-orange-200/50 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-24 right-8 size-40 rounded-full bg-orange-100/80 blur-2xl"
-      />
-      <div className="relative mx-auto flex w-full max-w-[420px] flex-col items-center px-5 py-10 sm:py-14">
-        {children}
-      </div>
-    </div>
-  )
-}
-
 const copy = {
   login: {
     titleLead: 'Welcome',
@@ -182,22 +69,33 @@ const copy = {
   },
 } as const
 
+function validName(name: string) {
+  const n = name.trim()
+  if (n.length < 2) return 'Enter your full name (at least 2 characters).'
+  if (n.length > 80) return 'Use 80 characters or fewer for your name.'
+  if (!/^[\p{L}][\p{L}\s'.-]*$/u.test(n)) return 'Use letters, spaces, apostrophes, or hyphens only.'
+  return null
+}
+
 export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const { signIn, signUp } = useAuth()
   const nav = useNavigate()
   const loc = useLocation()
-  const ids = { email: useId(), password: useId(), confirm: useId() }
+  const ids = { name: useId(), email: useId(), password: useId(), confirm: useId() }
   const t = copy[mode]
 
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [nameError, setNameError] = useState<string | null>(null)
   const [confirmError, setConfirmError] = useState<string | null>(null)
-  const [needsConfirm, setNeedsConfirm] = useState(false)
 
-  const from = (loc.state as { from?: string } | null)?.from
+  const locState = loc.state as { from?: string; reset?: boolean } | null
+  const from = locState?.from
+  const resetOk = Boolean(locState?.reset)
   const fallback = hasCompletedPlanChoice() ? '/dashboard' : afterAuthPath()
   const next = from && !from.startsWith('/login') && !from.startsWith('/register') ? from : fallback
 
@@ -205,26 +103,40 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
     e.preventDefault()
     setError(null)
     setConfirmError(null)
-    setNeedsConfirm(false)
+    setNameError(null)
 
-    if (mode === 'register' && password !== confirm) {
-      setConfirmError('Passwords do not match.')
-      return
+    if (mode === 'register' || name.trim()) {
+      const ne = validName(name)
+      if (ne) {
+        setNameError(ne)
+        return
+      }
     }
-    if (mode === 'register' && password.length < 6) {
-      setConfirmError('Use at least 6 characters.')
-      return
+    if (mode === 'register') {
+      if (password !== confirm) {
+        setConfirmError('Passwords do not match.')
+        return
+      }
+      if (password.length < 6) {
+        setConfirmError('Use at least 6 characters.')
+        return
+      }
     }
 
     setBusy(true)
     try {
       if (mode === 'login') {
-        await signIn(email.trim(), password)
+        await signIn(email.trim(), password, name.trim() || undefined)
         nav(next, { replace: true })
       } else {
-        const signedIn = await signUp(email.trim(), password)
+        const signedIn = await signUp(email.trim(), password, name.trim())
         if (signedIn) nav(next, { replace: true })
-        else setNeedsConfirm(true)
+        else {
+          nav('/verify-otp', {
+            replace: true,
+            state: { email: email.trim(), purpose: 'signup', next, from: next },
+          })
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -249,10 +161,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
       <form
         onSubmit={onSubmit}
         className="mt-7 w-full rounded-2xl border border-line bg-surface p-5 shadow-[0px_16px_40px_rgba(124,48,0,0.08)] sm:p-6"
-        noValidate={false}
       >
-      
-
         {error && (
           <div className="mb-4">
             <Alert tone="error" title={mode === 'login' ? 'Could not log in' : 'Could not create the account'}>
@@ -260,20 +169,43 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
             </Alert>
           </div>
         )}
-
-        {needsConfirm && (
+        {resetOk && mode === 'login' && !error && (
           <div className="mb-4">
-            <Alert tone="success" title="Check your email">
-              We sent a confirmation link to {email.trim()}. Open it, then log in.
+            <Alert tone="success" title="Password updated">
+              Log in with your new password.
             </Alert>
           </div>
         )}
 
         <div className="space-y-4">
+          <AuthField
+            id={ids.name}
+            label={mode === 'login' ? 'Full name (optional)' : 'Full name'}
+            icon={<UserRound size={16} aria-hidden />}
+            error={nameError}
+          >
+            <input
+              id={ids.name}
+              className={authInputClass}
+              type="text"
+              autoComplete="name"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value)
+                setNameError(null)
+              }}
+              placeholder="Abebe Kebede"
+              required={mode === 'register'}
+              disabled={busy}
+              aria-invalid={nameError ? true : undefined}
+              aria-describedby={nameError ? `${ids.name}-error` : undefined}
+            />
+          </AuthField>
+
           <AuthField id={ids.email} label="Email Address" icon={<Mail size={16} aria-hidden />}>
             <input
               id={ids.email}
-              className={inputClass}
+              className={authInputClass}
               type="email"
               inputMode="email"
               autoComplete="email"
@@ -309,6 +241,14 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
               error={confirmError}
               disabled={busy}
             />
+          )}
+
+          {mode === 'login' && (
+            <p className="text-right">
+              <Link to="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-700">
+                Forgot password?
+              </Link>
+            </p>
           )}
 
           <Button

@@ -34,12 +34,15 @@ export default function FeaturesSection() {
       />
 
       <div className="mt-12 grid gap-5 px-6 sm:grid-cols-2 xl:grid-cols-4 md:px-16 lg:px-24 xl:px-32">
-        {features.map((f) => (
+        {features.map((f, i) => (
           <div
             key={f.title}
             className="rounded-2xl border border-line bg-surface p-6 shadow-sm shadow-orange-900/5 transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
           >
-            <span className="flex size-11 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
+            <span
+              className="home-loop home-loop-bob flex size-11 items-center justify-center rounded-xl bg-orange-50 text-orange-600"
+              style={{ animationDelay: `${i * 0.35}s` }}
+            >
               <f.icon size={22} aria-hidden />
             </span>
             <h3 className="mt-4 text-base font-semibold text-ink">{f.title}</h3>

@@ -11,6 +11,8 @@ export function SideBySide({
   translatedLabel,
   preview = false,
   readOnly = false,
+  highlightIndex = null,
+  highlightSide = null,
 }: {
   original: Block[]
   translated: Block[]
@@ -20,6 +22,8 @@ export function SideBySide({
   /** Show the PREVIEW watermark (document not issued yet). */
   preview?: boolean
   readOnly?: boolean
+  highlightIndex?: number | null
+  highlightSide?: 'original' | 'translated' | null
 }) {
   return (
     <div className={`rounded-2xl border border-line bg-surface p-3 sm:p-5 ${preview ? 'preview-watermark' : ''}`}>
@@ -37,7 +41,13 @@ export function SideBySide({
               <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted md:hidden">
                 Original · {originalLabel} · {BLOCK_TYPE_LABEL[o.type]}
               </p>
-              <TextBlockEditor block={o} readOnly label={`Original block ${i + 1}, ${BLOCK_TYPE_LABEL[o.type]}`} />
+              <TextBlockEditor
+                block={o}
+                readOnly
+                index={highlightSide === 'original' ? i : undefined}
+                highlighted={highlightSide === 'original' && highlightIndex === i}
+                label={`Original block ${i + 1}, ${BLOCK_TYPE_LABEL[o.type]}`}
+              />
             </div>
             <div>
               <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted md:hidden">Translation · {translatedLabel}</p>
@@ -46,6 +56,8 @@ export function SideBySide({
                   block={translated[i]}
                   readOnly={readOnly}
                   onChange={(t) => onEdit?.(i, t)}
+                  index={highlightSide === 'translated' ? i : undefined}
+                  highlighted={highlightSide === 'translated' && highlightIndex === i}
                   label={`Translated block ${i + 1}, ${BLOCK_TYPE_LABEL[o.type]}`}
                 />
               )}

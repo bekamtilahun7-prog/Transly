@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AccessibilityLauncher } from '../components/accessibility/AccessibilityLauncher'
 import { Alert } from '../components/common/Alert'
 import { buttonClass } from '../components/common/Button'
 import { Logo } from '../components/common/Logo'
@@ -96,9 +97,12 @@ function CheckoutShell({ children }: { children: ReactNode }) {
         <Link to="/" className="text-ink" aria-label="Transly home">
           <Logo size={32} />
         </Link>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <AccessibilityLauncher />
+          <ThemeToggle />
+        </div>
       </header>
-      <main className="mx-auto w-full max-w-lg px-5 pb-16 text-center">{children}</main>
+      <main id="main" data-page-content className="mx-auto w-full max-w-lg px-5 pb-16 text-center">{children}</main>
       <p className="pb-8 text-center">
         <Link to="/onboarding" className="inline-flex items-center gap-1.5 text-sm text-ink-2 hover:text-ink">
           <ArrowLeft size={16} aria-hidden /> Back to plans

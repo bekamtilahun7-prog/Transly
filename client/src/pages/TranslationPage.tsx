@@ -4,8 +4,10 @@ import { ErrorAlert } from '../components/common/Alert'
 import { Button, buttonClass } from '../components/common/Button'
 import { LoadingState } from '../components/common/LoadingState'
 import { Card, PageHeader } from '../components/common/ui'
+import { DocumentListenPanel } from '../components/documents/DocumentListenPanel'
 import { IssuePanel } from '../components/documents/IssuePanel'
 import { SideBySide } from '../components/documents/SideBySide'
+import type { ReaderSide } from '../hooks/useDocumentReader'
 import { checkTranslated, loadDraft, sameBlocks, saveDraft } from '../lib/draft'
 import { langLabel } from '../lib/constants'
 import { api } from '../services/api'
@@ -23,6 +25,8 @@ export default function TranslationPage() {
   const [error, setError] = useState<unknown>(null)
   const [reviewBusy, setReviewBusy] = useState(false)
   const [reviewError, setReviewError] = useState<unknown>(null)
+  const [listenIndex, setListenIndex] = useState<number | null>(null)
+  const [listenSide, setListenSide] = useState<ReaderSide>('original')
 
   const translateNow = useCallback(
     async (d: DocumentRecord, src: Block[]) => {
@@ -114,9 +118,22 @@ export default function TranslationPage() {
         title="Review translation"
         description={`${langLabel(doc.sourceLang)} → ${langLabel(doc.targetLang)}. The PREVIEW mark stays until the document is issued.`}
       />
+      <DocumentListenPanel
+        documentId={id}
+        original={original}
+        translated={translated}
+        sourceLang={doc.sourceLang}
+        targetLang={doc.targetLang}
+        onHighlight={(i, side) => {
+          setListenIndex(i)
+          setListenSide(side)
+        }}
+      />
       <SideBySide
         original={original}
         translated={translated}
+        highlightIndex={listenIndex}
+        highlightSide={listenSide}
         onEdit={(i, text) =>
           setTranslated((prev) => {
             const next = prev.map((b, j) => (j === i ? { ...b, text } : b))

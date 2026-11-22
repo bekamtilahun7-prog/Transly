@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'rea
 import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { displayNameOf, initialsOf } from '../../lib/format'
+import { AccessibilityLauncher } from '../accessibility/AccessibilityLauncher'
 import { Alert } from '../common/Alert'
 import { Logo } from '../common/Logo'
 import { ThemeToggle } from '../common/ThemeToggle'
@@ -117,15 +118,18 @@ function UserMenu({ onSignOut }: { onSignOut: () => void }) {
         className="flex items-center gap-2 rounded-full p-1 pr-2 transition duration-150 hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="flex size-9 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">
-          {initialsOf(user.email)}
+          {initialsOf(user.email, user.name)}
         </span>
-        <span className="hidden max-w-40 truncate text-sm font-medium text-ink sm:block">{displayNameOf(user.email)}</span>
+        <span className="hidden max-w-40 truncate text-sm font-medium text-ink sm:block">
+          {displayNameOf(user.email, user.name)}
+        </span>
         <ChevronDown size={16} className="text-ink-2" aria-hidden />
       </button>
       {open && (
         <div role="menu" className="absolute right-0 z-40 mt-2 w-64 rounded-2xl border border-line bg-elevated p-2 shadow-xl">
           <div className="px-3 py-2">
-            <p className="truncate text-sm font-medium text-ink">{user.email}</p>
+            <p className="truncate text-sm font-medium text-ink">{user.name || user.email}</p>
+            {user.name ? <p className="truncate text-xs text-ink-2">{user.email}</p> : null}
             <p className="text-xs text-ink-2">{role === 'translator' ? 'Translator account' : 'Document user'}</p>
           </div>
           <button
@@ -208,7 +212,7 @@ export function AppLayout() {
     <div className="app-backdrop flex min-h-dvh flex-col">
       <div className="flex flex-1">
         {/* Desktop sidebar */}
-        <aside className="no-print sticky top-0 hidden h-dvh w-64 shrink-0 border-r border-line bg-surface/80 backdrop-blur lg:block">
+        <aside data-no-speak className="no-print sticky top-0 hidden h-dvh w-64 shrink-0 border-r border-line bg-surface/80 backdrop-blur lg:block">
           <SidebarContent onSignOut={() => void onSignOut()} signingOut={signingOut} />
         </aside>
 
@@ -231,7 +235,7 @@ export function AppLayout() {
         )}
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="no-print sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-bg/80 px-4 py-3 backdrop-blur sm:px-6 lg:border-0 lg:bg-transparent lg:px-8 lg:py-5 lg:backdrop-blur-none">
+          <header data-no-speak className="no-print sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-bg/80 px-4 py-3 backdrop-blur sm:px-6 lg:border-0 lg:bg-transparent lg:px-8 lg:py-5 lg:backdrop-blur-none">
             <button
               type="button"
               aria-label="Open menu"
@@ -243,12 +247,13 @@ export function AppLayout() {
             </button>
             <DocumentSearch />
             <div className="ml-auto flex shrink-0 items-center gap-2">
+              <AccessibilityLauncher />
               <ThemeToggle />
               <UserMenu onSignOut={() => void onSignOut()} />
             </div>
           </header>
 
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-10 pt-4 sm:px-6 lg:px-8 lg:pt-0">
+          <main id="main" data-page-content className="mx-auto w-full max-w-6xl flex-1 px-4 pb-10 pt-4 sm:px-6 lg:px-8 lg:pt-0">
             {signOutError && (
               <div className="mb-4">
                 <Alert tone="error" title="Could not log out">

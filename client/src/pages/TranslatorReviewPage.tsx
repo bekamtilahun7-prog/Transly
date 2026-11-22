@@ -5,8 +5,10 @@ import { ErrorAlert } from '../components/common/Alert'
 import { buttonClass } from '../components/common/Button'
 import { LoadingState } from '../components/common/LoadingState'
 import { PageHeader } from '../components/common/ui'
+import { DocumentListenPanel } from '../components/documents/DocumentListenPanel'
 import { IssuePanel } from '../components/documents/IssuePanel'
 import { SideBySide } from '../components/documents/SideBySide'
+import type { ReaderSide } from '../hooks/useDocumentReader'
 import { checkTranslated } from '../lib/draft'
 import { langLabel } from '../lib/constants'
 import { api } from '../services/api'
@@ -18,6 +20,8 @@ export default function TranslatorReviewPage() {
   const [translated, setTranslated] = useState<Block[]>([])
   const [error, setError] = useState<unknown>(null)
   const [fileUrl, setFileUrl] = useState<string | null>(null)
+  const [listenIndex, setListenIndex] = useState<number | null>(null)
+  const [listenSide, setListenSide] = useState<ReaderSide>('original')
 
   const load = useCallback(async () => {
     setError(null)
@@ -71,6 +75,17 @@ export default function TranslatorReviewPage() {
           ) : null
         }
       />
+      <DocumentListenPanel
+        documentId={doc.id}
+        original={doc.blocksOriginal}
+        translated={translated}
+        sourceLang={doc.sourceLang}
+        targetLang={doc.targetLang}
+        onHighlight={(i, side) => {
+          setListenIndex(i)
+          setListenSide(side)
+        }}
+      />
       <SideBySide
         original={doc.blocksOriginal}
         translated={translated}
@@ -78,6 +93,8 @@ export default function TranslatorReviewPage() {
         originalLabel={langLabel(doc.sourceLang)}
         translatedLabel={langLabel(doc.targetLang)}
         preview
+        highlightIndex={listenIndex}
+        highlightSide={listenSide}
       />
       <IssuePanel
         doc={doc}

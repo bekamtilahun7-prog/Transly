@@ -3,7 +3,7 @@ import { Logo } from "./common/Logo";
 
 export default function Footer() {
   return (
-    <footer className="px-6 md:px-16 lg:px-24 xl:px-32 mt-24 w-full text-ink-2">
+    <footer data-no-speak className="px-6 md:px-16 lg:px-24 xl:px-32 mt-24 w-full text-ink-2">
       <div className="flex flex-col md:flex-row justify-between w-full gap-10 border-b border-line pb-8">
         <div className="md:max-w-114">
           <Link to="/" className="text-ink inline-flex" aria-label="Transly home">

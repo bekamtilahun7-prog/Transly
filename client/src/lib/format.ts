@@ -38,16 +38,21 @@ export function formatBytes(n: number): string {
   return `${(n / 1048576).toFixed(1)} MB`
 }
 
-/** Two letters for the avatar, taken from the email's local part. */
-export function initialsOf(email: string): string {
+/** Two letters for the avatar, from a full name when present, otherwise the email. */
+export function initialsOf(email: string, name?: string | null): string {
+  const fromName = name?.trim().split(/\s+/).filter(Boolean) ?? []
+  if (fromName.length >= 2) return (fromName[0][0] + fromName[1][0]).toUpperCase()
+  if (fromName.length === 1) return fromName[0].slice(0, 2).toUpperCase()
   const local = email.split('@')[0] ?? ''
   const parts = local.split(/[._\-+]+/).filter(Boolean)
   const letters = parts.length >= 2 ? parts[0][0] + parts[1][0] : local.slice(0, 2)
   return (letters || '?').toUpperCase()
 }
 
-/** Friendly name for greetings: the email's local part, first word capitalised. */
-export function displayNameOf(email: string): string {
+/** Friendly name for greetings: stored full name, otherwise the email's local part. */
+export function displayNameOf(email: string, name?: string | null): string {
+  const given = name?.trim().split(/\s+/).filter(Boolean)[0]
+  if (given) return given[0].toUpperCase() + given.slice(1)
   const first = (email.split('@')[0] ?? '').split(/[._\-+\d]+/).filter(Boolean)[0] ?? ''
   return first ? first[0].toUpperCase() + first.slice(1) : 'there'
 }

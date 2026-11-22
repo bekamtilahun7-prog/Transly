@@ -39,28 +39,38 @@ export function TextBlockEditor({
   onChange,
   readOnly = false,
   label,
+  highlighted = false,
+  index,
 }: {
   block: Block
   onChange?: (text: string) => void
   readOnly?: boolean
   label?: string
+  highlighted?: boolean
+  index?: number
 }) {
+  const ttsAttr = index == null ? undefined : String(index)
   if (isNonText(block)) {
     return (
-      <div className="rounded-xl border border-dashed border-line-strong bg-bg-2 px-3 py-2.5 text-sm italic text-ink-2">
+      <div
+        data-tts-block={ttsAttr}
+        className={`rounded-xl border border-dashed border-line-strong bg-bg-2 px-3 py-2.5 text-sm italic text-ink-2 ${highlighted ? 'tts-active' : ''}`}
+      >
         {NON_TEXT_PLACEHOLDER[block.type]}
       </div>
     )
   }
   const unclear = hasUnclear(block.text)
-  const frame = unclear
-    ? 'border-warn bg-warn-bg/40 focus-within:ring-warn/40'
-    : readOnly
-      ? 'border-line bg-bg-2/60 focus-within:ring-ring/40'
-      : 'border-input-line bg-input focus-within:border-focus focus-within:ring-ring/60'
+  const frame = highlighted
+    ? 'border-brand bg-brand-soft tts-active focus-within:ring-brand/40'
+    : unclear
+      ? 'border-warn bg-warn-bg/40 focus-within:ring-warn/40'
+      : readOnly
+        ? 'border-line bg-bg-2/60 focus-within:ring-ring/40'
+        : 'border-input-line bg-input focus-within:border-focus focus-within:ring-ring/60'
   const weight = block.type === 'heading' ? 'font-semibold' : ''
   return (
-    <div>
+    <div data-tts-block={ttsAttr}>
       <div className={`grid rounded-xl border transition duration-150 focus-within:ring-2 ${frame}`}>
         {/* Mirror: sizes the box to its content and paints the [unclear] highlight behind the text. */}
         <div aria-hidden className={`${textLayout} ${weight} pointer-events-none text-transparent`}>

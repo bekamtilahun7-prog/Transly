@@ -35,7 +35,7 @@ export function Field({
         'aria-invalid': error ? true : undefined,
       })}
       {note && (
-        <p id={noteId} className={`mt-1.5 text-xs ${error ? 'text-danger' : 'text-ink-2'}`}>
+        <p id={noteId} role={error ? 'alert' : undefined} className={`mt-1.5 text-xs ${error ? 'text-danger' : 'text-ink-2'}`}>
           {note}
         </p>
       )}

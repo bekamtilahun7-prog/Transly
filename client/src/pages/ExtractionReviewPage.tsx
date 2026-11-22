@@ -5,6 +5,7 @@ import { Alert, ErrorAlert } from '../components/common/Alert'
 import { Button, buttonClass } from '../components/common/Button'
 import { LoadingState } from '../components/common/LoadingState'
 import { Card, PageHeader } from '../components/common/ui'
+import { DocumentListenPanel } from '../components/documents/DocumentListenPanel'
 import { DocumentPreview } from '../components/documents/DocumentPreview'
 import { BlockCaption, TextBlockEditor, hasUnclear } from '../components/documents/TextBlockEditor'
 import { docTypeLabel, langLabel } from '../lib/constants'
@@ -24,6 +25,7 @@ export default function ExtractionReviewPage() {
   const [error, setError] = useState<unknown>(null)
   const [detected, setDetected] = useState<ExtractResponse | null>(null)
   const [fileUrl, setFileUrl] = useState<string | null>(null)
+  const [listenIndex, setListenIndex] = useState<number | null>(null)
 
   const run = useCallback(async () => {
     setPhase('loading')
@@ -113,6 +115,16 @@ export default function ExtractionReviewPage() {
         <Alert tone="success">No unclear parts were marked. Please still read it carefully.</Alert>
       )}
 
+      {doc && (
+        <DocumentListenPanel
+          documentId={doc.id}
+          original={blocks}
+          sourceLang={doc.sourceLang}
+          targetLang={doc.targetLang}
+          onHighlight={(i) => setListenIndex(i)}
+        />
+      )}
+
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="overflow-hidden">
           <DocumentPreview url={fileUrl} fileName={doc ? fileNameOf(doc) : 'document'} />
@@ -123,7 +135,7 @@ export default function ExtractionReviewPage() {
             {blocks.map((b, i) => (
               <li key={b.id}>
                 <BlockCaption index={i} block={b} />
-                <TextBlockEditor block={b} onChange={(t) => edit(i, t)} />
+                <TextBlockEditor block={b} onChange={(t) => edit(i, t)} index={i} highlighted={listenIndex === i} />
               </li>
             ))}
           </ol>

@@ -180,6 +180,103 @@ button:disabled {
     background-size: 14px 14px;
 }
 
+/* Looping landing motion. Paused in Accessible Mode and by prefers-reduced-motion. */
+@keyframes home-orb {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-28px, 22px) scale(1.12); }
+}
+
+@keyframes home-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+
+@keyframes home-pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 55%, transparent); }
+    70% { transform: scale(1.15); box-shadow: 0 0 0 10px transparent; }
+}
+
+@keyframes home-scan {
+    0% { top: 12%; opacity: 0; }
+    12% { opacity: 1; }
+    88% { opacity: 1; }
+    100% { top: 86%; opacity: 0; }
+}
+
+@keyframes home-progress {
+    0% { transform: scaleX(0); }
+    30% { transform: scaleX(0.5); }
+    64% { transform: scaleX(1); }
+    100% { transform: scaleX(1); }
+}
+
+@keyframes home-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+@keyframes home-shine {
+    0% { transform: translateX(-120%); }
+    40%, 100% { transform: translateX(120%); }
+}
+
+@keyframes home-gradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+@keyframes home-step {
+    0%, 100% { transform: translateY(0); box-shadow: 0 1px 2px rgb(124 48 0 / 0.06); }
+    35% { transform: translateY(-6px); box-shadow: 0 10px 24px rgb(255 107 0 / 0.18); }
+}
+
+@keyframes home-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+@keyframes home-swap {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.home-loop-orb { animation: home-orb 16s ease-in-out infinite; }
+.home-loop-orb-alt { animation: home-orb 22s ease-in-out infinite reverse; }
+.home-loop-float { animation: home-float 4.8s ease-in-out infinite; }
+.home-loop-pulse { animation: home-pulse 2.2s ease-out infinite; }
+.home-loop-scan { animation: home-scan 3.4s ease-in-out infinite; }
+.home-loop-progress {
+    transform-origin: left center;
+    animation: home-progress 13.5s ease-in-out infinite;
+}
+.home-loop-marquee { animation: home-marquee 32s linear infinite; }
+.home-loop-bob { animation: home-bob 3.8s ease-in-out infinite; }
+.home-loop-step { animation: home-step 3.6s ease-in-out infinite; }
+.home-loop-swap { animation: home-swap 0.55s ease-out; }
+.home-loop-gradient {
+    background-size: 200% 200%;
+    animation: home-gradient 12s ease infinite;
+}
+
+.home-loop-shine { position: relative; overflow: hidden; }
+.home-loop-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.38) 50%, transparent 65%);
+    animation: home-shine 3.6s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.home-marquee-track:hover .home-loop-marquee {
+    animation-play-state: paused;
+}
+
+html.a11y-mode .home-loop,
+html.a11y-mode .home-loop::after {
+    animation: none !important;
+}
+
 /* A document page is always white with dark text, in either theme. */
 .doc-paper {
     background-color: #FFFFFF;
@@ -211,4 +308,68 @@ button:disabled {
 html {
     scroll-behavior: smooth;
     scroll-padding-top: 5rem;
+}
+
+/* Accessible mode: stronger focus, spacing, and type. */
+html.a11y-mode {
+    --focus: #C94F00;
+    --ring: #FF6B00;
+}
+
+html.a11y-mode :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+}
+
+html.a11y-mode button,
+html.a11y-mode a,
+html.a11y-mode [role='button'] {
+    min-height: 2.5rem;
+}
+
+html.a11y-large {
+    font-size: 118%;
+}
+
+html.a11y-large body {
+    line-height: 1.65;
+}
+
+html.a11y-contrast {
+    --bg: #FFFFFF;
+    --bg-2: #F4F4F5;
+    --surface: #FFFFFF;
+    --elevated: #FFFFFF;
+    --hover: #FFF4EB;
+    --ink: #000000;
+    --ink-2: #1A1A1A;
+    --muted: #3F3F46;
+    --line: #171923;
+    --line-strong: #000000;
+    --input: #FFFFFF;
+    --input-line: #171923;
+    --brand-ink: #9A3A00;
+    --primary: #C94F00;
+}
+
+html.a11y-contrast.dark {
+    --bg: #000000;
+    --bg-2: #171923;
+    --surface: #0D111B;
+    --elevated: #171923;
+    --hover: #2A1D14;
+    --ink: #FFFFFF;
+    --ink-2: #F4F4F5;
+    --muted: #D4D4D8;
+    --line: #F8FAFC;
+    --line-strong: #FFFFFF;
+    --input: #0D111B;
+    --input-line: #F8FAFC;
+    --brand-ink: #FFA36B;
+    --primary: #FF8533;
+}
+
+.tts-active {
+    box-shadow: 0 0 0 2px var(--brand);
+    background-color: var(--brand-soft);
 }

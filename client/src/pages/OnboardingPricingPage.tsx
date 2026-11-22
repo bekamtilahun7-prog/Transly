@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { AccessibilityLauncher } from '../components/accessibility/AccessibilityLauncher'
 import { Logo } from '../components/common/Logo'
 import { ThemeToggle } from '../components/common/ThemeToggle'
 import { PricingExperience } from '../components/pricing/PricingExperience'
@@ -16,10 +17,11 @@ export default function OnboardingPricingPage() {
           <Logo size={32} />
         </Link>
         <div className="flex items-center gap-3">
+          <AccessibilityLauncher />
           <ThemeToggle />
         </div>
       </header>
-      <main className="relative z-10 px-5 pb-16 pt-6 sm:px-8">
+      <main id="main" data-page-content className="relative z-10 px-5 pb-16 pt-6 sm:px-8">
         <PricingExperience variant="onboarding" />
       </main>
     </div>

@@ -76,7 +76,7 @@ function DashStat({
 
 export default function DashboardPage() {
   const { user } = useAuth()
-  const name = displayNameOf(user?.email ?? '')
+  const name = displayNameOf(user?.email ?? '', user?.name)
   const [docs, setDocs] = useState<DocumentRecord[] | null>(null)
   const [error, setError] = useState<unknown>(null)
 

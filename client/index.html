@@ -14,6 +14,12 @@
             if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
             }
+            var a = JSON.parse(localStorage.getItem('transly.a11y.v1') || 'null');
+            if (a && a.mode === 'accessible') {
+                document.documentElement.classList.add('a11y-mode');
+                if (a.largeText) document.documentElement.classList.add('a11y-large');
+                if (a.highContrast) document.documentElement.classList.add('a11y-contrast');
+            }
         } catch (e) { }
     </script>
 </head>

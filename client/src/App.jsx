@@ -2,6 +2,9 @@ import { Outlet, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import VerifyOtpPage from "./pages/VerifyOtpPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import DashboardPage from "./pages/DashboardPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import UploadPage from "./pages/UploadPage";
@@ -24,7 +27,9 @@ function Landing() {
   return (
     <div className="min-h-dvh bg-bg text-ink">
       <Navbar />
-      <Home />
+      <main id="main" data-page-content>
+        <Home />
+      </main>
       <Footer />
     </div>
   );
@@ -34,9 +39,9 @@ function PublicShell() {
   return (
     <div className="min-h-dvh bg-bg text-ink">
       <Navbar />
-      <div className="px-6 pb-16 pt-28 md:px-16 lg:px-24 xl:px-32">
+      <main id="main" data-page-content className="px-6 pb-16 pt-28 md:px-16 lg:px-24 xl:px-32">
         <Outlet />
-      </div>
+      </main>
       <Footer />
     </div>
   );
@@ -46,9 +51,9 @@ function ErrorShell() {
   return (
     <div className="flex min-h-dvh flex-col bg-bg text-ink">
       <Navbar />
-      <div className="flex flex-1 items-center justify-center px-6 pt-20">
+      <main id="main" data-page-content className="flex flex-1 items-center justify-center px-6 pt-20">
         <Outlet />
-      </div>
+      </main>
     </div>
   );
 }
@@ -60,6 +65,9 @@ export default function App() {
       <Route element={<RedirectIfAuthed />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/verify-otp" element={<VerifyOtpPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
       <Route element={<PublicShell />}>
         <Route path="/v/:id" element={<VerificationPage />} />
