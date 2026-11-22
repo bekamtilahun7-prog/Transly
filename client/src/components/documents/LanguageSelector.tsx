@@ -1,3 +1,4 @@
+import { useLocale } from '../../context/LocaleContext'
 import { DOC_TYPES, LANGUAGES } from '../../lib/constants'
 import type { DocType, LangCode } from '../../types'
 import { Field, inputClass } from '../common/Input'
@@ -15,12 +16,13 @@ export function LanguageSelector({
   error?: string | null
   disabled?: boolean
 }) {
+  const { t } = useLocale()
   return (
     <Field label={label} error={error}>
       <select className={inputClass} value={value} disabled={disabled} onChange={(e) => onChange(e.target.value as LangCode)}>
         {LANGUAGES.map((l) => (
           <option key={l.code} value={l.code}>
-            {l.label}
+            {t(`langs.${l.code}`)}
             {l.native !== l.label ? ` (${l.native})` : ''}
           </option>
         ))}
@@ -38,12 +40,13 @@ export function DocTypeSelector({
   onChange: (v: DocType) => void
   disabled?: boolean
 }) {
+  const { t } = useLocale()
   return (
-    <Field label="Document type">
+    <Field label={t('upload.docType')}>
       <select className={inputClass} value={value} disabled={disabled} onChange={(e) => onChange(e.target.value as DocType)}>
         {DOC_TYPES.map((d) => (
           <option key={d.value} value={d.value}>
-            {d.label}
+            {t(`types.${d.value}`)}
           </option>
         ))}
       </select>

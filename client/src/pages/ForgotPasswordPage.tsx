@@ -6,9 +6,11 @@ import { Alert } from '../components/common/Alert'
 import { Button } from '../components/common/Button'
 import { Logo } from '../components/common/Logo'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
 import { USE_MOCKS } from '../lib/constants'
 
 export default function ForgotPasswordPage() {
+  const { t } = useLocale()
   const { requestPasswordReset } = useAuth()
   const nav = useNavigate()
   const id = useId()
@@ -32,7 +34,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthShell>
-      <Link to="/" className="text-ink" aria-label="Transly home">
+      <Link to="/" className="text-ink" aria-label={t('nav.home')}>
         <Logo size={36} />
       </Link>
 
@@ -44,11 +46,9 @@ export default function ForgotPasswordPage() {
       </div>
 
       <h1 className="mt-5 text-center text-[28px] font-semibold tracking-tight text-ink sm:text-[32px]">
-        Forgot <span className="text-orange-500">password?</span>
+        {t('auth.forgotTitle')} <span className="text-orange-500">{t('auth.forgotAccent')}</span>
       </h1>
-      <p className="mt-2 max-w-sm text-center text-sm text-ink-2">
-        Enter the email on your account and we’ll send a verification code so you can choose a new password.
-      </p>
+      <p className="mt-2 max-w-sm text-center text-sm text-ink-2">{t('auth.forgotSub')}</p>
 
       <form
         onSubmit={onSubmit}
@@ -56,20 +56,20 @@ export default function ForgotPasswordPage() {
       >
         {error && (
           <div className="mb-4">
-            <Alert tone="error" title="Could not start a reset">
+            <Alert tone="error" title={t('auth.forgotFail')}>
               {error}
             </Alert>
           </div>
         )}
         {USE_MOCKS && (
           <div className="mb-4">
-            <Alert tone="info" title="Demo mode">
-              No email is sent. The next screen will show a 6-digit code you can type in.
+            <Alert tone="info" title={t('auth.demoMode')}>
+              {t('auth.demoOtp')}
             </Alert>
           </div>
         )}
 
-        <AuthField id={id} label="Email Address" icon={<Mail size={16} aria-hidden />}>
+        <AuthField id={id} label={t('auth.email')} icon={<Mail size={16} aria-hidden />}>
           <input
             id={id}
             className={authInputClass}
@@ -90,13 +90,13 @@ export default function ForgotPasswordPage() {
           size="lg"
           loading={busy}
         >
-          Send reset code
+          {t('auth.sendCode')}
         </Button>
 
         <p className="mt-4 text-center text-sm text-ink-2">
-          Remembered it?{' '}
+          {t('auth.haveAccount')}{' '}
           <Link to="/login" className="font-medium text-orange-600 hover:text-orange-700">
-            Log in
+            {t('auth.login')}
           </Link>
         </p>
 
@@ -105,7 +105,7 @@ export default function ForgotPasswordPage() {
           className="mt-5 flex min-h-10 items-center justify-center gap-1.5 text-sm text-ink-2 transition hover:text-ink"
         >
           <ArrowLeft size={16} aria-hidden />
-          Back to login
+          {t('auth.login')}
         </Link>
       </form>
     </AuthShell>

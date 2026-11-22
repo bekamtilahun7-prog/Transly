@@ -7,6 +7,7 @@ import { useSubscription } from '../../hooks/useSubscription'
 import { BillingPeriodSelector } from './BillingPeriodSelector'
 import { IndividualPricingSection } from './IndividualPricingSection'
 import { OrganizationPricingSection } from './OrganizationPricingSection'
+import { useLocale } from '../../context/LocaleContext'
 import { PricingCategorySelector } from './PricingCategorySelector'
 
 export function PricingExperience({
@@ -15,6 +16,7 @@ export function PricingExperience({
   variant: 'section' | 'page' | 'onboarding'
 }) {
   const { user } = useAuth()
+  const { t } = useLocale()
   const nav = useNavigate()
   const { selection, billingPeriod, category, setPeriod, setCategory } = useSubscription()
   const [seats, setSeats] = useState({
@@ -55,11 +57,9 @@ export function PricingExperience({
     <div className={variant === 'section' ? 'pt-8' : ''}>
       <header className="mx-auto max-w-2xl text-center">
         <h2 className={`${variant === 'section' ? 'text-4xl sm:text-5xl' : 'text-4xl sm:text-[52px]'} font-semibold tracking-tight text-ink`}>
-          Pricing
+          {t('pricing.title')}
         </h2>
-        <p className="mx-auto mt-3 max-w-md text-sm text-ink-2 sm:text-base">
-          Choose the right plan for your documents and workflow.
-        </p>
+        <p className="mx-auto mt-3 max-w-md text-sm text-ink-2 sm:text-base">{t('pricing.sub')}</p>
       </header>
 
       <div className="mt-8 flex flex-col items-center gap-4">
@@ -88,9 +88,7 @@ export function PricingExperience({
       </div>
 
       <p className="mx-auto mt-8 max-w-xl text-center text-xs text-muted">
-        Amounts are listed in Ethiopian Birr from the Transly catalog. Paid plans are activated only after
-        the server verifies payment. Checkout is not connected yet — selecting a paid plan will not charge
-        you or unlock paid limits.
+        {t('pricing.note')}
       </p>
     </div>
   )

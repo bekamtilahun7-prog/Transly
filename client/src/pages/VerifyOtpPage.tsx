@@ -6,6 +6,7 @@ import { Alert } from '../components/common/Alert'
 import { Button } from '../components/common/Button'
 import { Logo } from '../components/common/Logo'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
 import { USE_MOCKS } from '../lib/constants'
 import { peekOtp, type OtpPurpose } from '../lib/mockAccounts'
 import { afterAuthPath, hasCompletedPlanChoice } from '../lib/subscription'
@@ -81,6 +82,7 @@ function OtpBoxes({
 }
 
 export default function VerifyOtpPage() {
+  const { t } = useLocale()
   const { confirmOtp, resendOtp } = useAuth()
   const nav = useNavigate()
   const loc = useLocation()
@@ -157,7 +159,7 @@ export default function VerifyOtpPage() {
 
   return (
     <AuthShell>
-      <Link to="/" className="text-ink" aria-label="Transly home">
+      <Link to="/" className="text-ink" aria-label={t('nav.home')}>
         <Logo size={36} />
       </Link>
 
@@ -172,14 +174,9 @@ export default function VerifyOtpPage() {
       </div>
 
       <h1 className="mt-5 text-center text-[28px] font-semibold tracking-tight text-ink sm:text-[32px]">
-        Verify <span className="text-orange-500">your email</span>
+        {t('auth.otpTitle')} <span className="text-orange-500">{t('auth.otpAccent')}</span>
       </h1>
-      <p className="mt-2 max-w-sm text-center text-sm text-ink-2">
-        {purpose === 'signup'
-          ? 'Enter the 6-digit code to finish creating your account for'
-          : 'Enter the 6-digit code to reset the password for'}{' '}
-        <span className="font-medium text-ink">{email}</span>.
-      </p>
+      <p className="mt-2 max-w-sm text-center text-sm text-ink-2">{t('auth.otpSub', { email })}</p>
 
       <form
         id={formId}
@@ -188,7 +185,7 @@ export default function VerifyOtpPage() {
       >
         {error && (
           <div className="mb-4">
-            <Alert tone="error" title="Could not verify">
+            <Alert tone="error" title={t('auth.otpFail')}>
               {error}
             </Alert>
           </div>
@@ -231,18 +228,18 @@ export default function VerifyOtpPage() {
           loading={busy}
           disabled={code.length !== 6}
         >
-          Verify code
+          {t('auth.verify')}
         </Button>
 
         <p className="mt-4 text-center text-sm text-ink-2">
-          Didn’t get a code?{' '}
+          {t('auth.resend')}{' '}
           <button
             type="button"
             onClick={() => void onResend()}
             disabled={busy}
             className="font-medium text-orange-600 hover:text-orange-700 disabled:opacity-60"
           >
-            Send a new one
+            {t('auth.sendCode')}
           </button>
         </p>
 
@@ -251,7 +248,7 @@ export default function VerifyOtpPage() {
           className="mt-5 flex min-h-10 items-center justify-center gap-1.5 text-sm text-ink-2 transition hover:text-ink"
         >
           <ArrowLeft size={16} aria-hidden />
-          {purpose === 'reset' ? 'Back to forgot password' : 'Back to register'}
+          {purpose === 'reset' ? t('auth.forgot') : t('auth.signUp')}
         </Link>
       </form>
     </AuthShell>

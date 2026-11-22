@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { usesGeminiVoice } from '../lib/speech/aiTts'
 import { blocksToSegments } from '../lib/speech/segments'
 import { bestVoiceForLang, langToBcp47, voiceUnavailableMessage, voicesForLang } from '../lib/speech/voices'
 import { readTtsPrefs, writeTtsPrefs } from '../lib/speech/a11yPrefs'
@@ -38,6 +39,12 @@ export function useDocumentReader({
   }, [queue.rateRef, rate])
 
   useEffect(() => {
+    if (usesGeminiVoice(lang)) {
+      setVoiceState('gemini-ai')
+      queue.voiceRef.current = null
+      setVoiceReady(true)
+      return
+    }
     if (!queue.voices.length) return
     const saved = stored.voiceURIByLang[lang]
     const next = bestVoiceForLang(queue.voices, lang, saved)
@@ -91,7 +98,7 @@ export function useDocumentReader({
   )
 
   const highlightIndex = queue.active || queue.status === 'paused' ? (segments[queue.index]?.blockIndex ?? null) : null
-  const langMissing = voiceReady && matches.length === 0
+  const langMissing = voiceReady && matches.length === 0 && !usesGeminiVoice(lang)
   const playFromStart = useCallback(() => play(0), [play])
   const resume = useCallback(
     () => (queue.status === 'paused' ? queue.resume() : play(queue.index)),
@@ -105,7 +112,7 @@ export function useDocumentReader({
       index: queue.index,
       length: segments.length,
       progress: queue.progress,
-      error: queue.error || (segments.length === 0 ? 'This document has no readable text yet.' : null),
+      error: queue.error,
       side,
       canTranslate,
       lang,

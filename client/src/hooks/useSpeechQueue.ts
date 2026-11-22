@@ -63,7 +63,7 @@ export function useSpeechQueue(owner: SpeechOwner) {
       itemsRef.current = items
       setLength(items.length)
       if (!items.length) {
-        setError('There is nothing to read.')
+        setError('a11y.nothing')
         return
       }
       speakAt(Math.min(Math.max(from, 0), items.length - 1))

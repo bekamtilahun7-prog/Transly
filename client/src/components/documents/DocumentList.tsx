@@ -1,5 +1,6 @@
 import { Download, Eye, FileText, ImageIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useLocale } from '../../context/LocaleContext'
 import { fileKindOf, fileNameOf, formatDateTime, ownerPathFor } from '../../lib/format'
 import { getIssuedVerificationId } from '../../lib/issue'
 import type { DocumentRecord } from '../../types'
@@ -22,22 +23,24 @@ export function DocumentFileIcon({ name }: { name: string }) {
 }
 
 function RowActions({ doc, href }: { doc: DocumentRecord; href?: string }) {
+  const { t } = useLocale()
   const issuedId = doc.status === 'issued' ? getIssuedVerificationId(doc.id) : undefined
   const canDownload = Boolean(issuedId)
+  const name = fileNameOf(doc)
   return (
     <div className="flex items-center justify-end gap-1">
       <Link
         to={href ?? ownerPathFor(doc)}
-        aria-label={`Open ${fileNameOf(doc)}`}
+        aria-label={t('list.open', { name })}
         className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full border border-line px-2 text-ink-2 transition duration-150 hover:bg-hover hover:text-ink lg:px-3"
       >
         <Eye size={16} aria-hidden />
-        <span className="hidden text-xs font-medium lg:inline">View</span>
+        <span className="hidden text-xs font-medium lg:inline">{t('ui.view')}</span>
       </Link>
       {canDownload ? (
         <Link
           to={`/documents/issued/${issuedId}`}
-          aria-label={`Download ${fileNameOf(doc)}`}
+          aria-label={t('list.downloadFile', { name })}
           className="inline-flex size-9 items-center justify-center rounded-full border border-line text-ink-2 transition duration-150 hover:bg-hover hover:text-ink"
         >
           <Download size={16} aria-hidden />
@@ -45,10 +48,10 @@ function RowActions({ doc, href }: { doc: DocumentRecord; href?: string }) {
       ) : (
         <span
           className="inline-flex size-9 items-center justify-center rounded-full border border-line text-disabled"
-          title="Download is available after the document is issued."
+          title={t('ui.downloadLater')}
         >
           <Download size={16} aria-hidden />
-          <span className="sr-only">Download unavailable until issued</span>
+          <span className="sr-only">{t('ui.downloadLaterSr')}</span>
         </span>
       )}
     </div>
@@ -63,6 +66,7 @@ export function DocumentList({
   docs: DocumentRecord[]
   hrefFor?: (doc: DocumentRecord) => string
 }) {
+  const { t } = useLocale()
   return (
     <>
       <ul className="divide-y divide-line md:hidden">
@@ -90,12 +94,12 @@ export function DocumentList({
         <table className="w-full min-w-[40rem] text-left text-sm">
           <thead>
             <tr className="border-b border-line text-xs font-medium text-ink-2">
-              <th className="px-4 py-3 font-medium">Document Name</th>
-              <th className="px-3 py-3 font-medium">Type</th>
-              <th className="px-3 py-3 font-medium">Languages</th>
-              <th className="px-3 py-3 font-medium">Status</th>
-              <th className="px-3 py-3 font-medium">Uploaded On</th>
-              <th className="px-4 py-3 text-right font-medium">Actions</th>
+              <th className="px-4 py-3 font-medium">{t('list.name')}</th>
+              <th className="px-3 py-3 font-medium">{t('list.type')}</th>
+              <th className="px-3 py-3 font-medium">{t('list.languages')}</th>
+              <th className="px-3 py-3 font-medium">{t('list.status')}</th>
+              <th className="px-3 py-3 font-medium">{t('list.uploaded')}</th>
+              <th className="px-4 py-3 text-right font-medium">{t('list.actions')}</th>
             </tr>
           </thead>
           <tbody>

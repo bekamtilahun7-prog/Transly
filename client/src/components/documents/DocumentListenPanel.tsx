@@ -1,7 +1,9 @@
 import { Pause, Play, SkipBack, SkipForward, Square, Volume2 } from 'lucide-react'
 import { useEffect, type ReactNode } from 'react'
+import { useLocale } from '../../context/LocaleContext'
 import { useDocumentReader, type ReaderSide } from '../../hooks/useDocumentReader'
-import { LANGUAGES, langLabel } from '../../lib/constants'
+import { LANGUAGES } from '../../lib/constants'
+import { usesGeminiVoice } from '../../lib/speech/aiTts'
 import { voicesForLang } from '../../lib/speech/voices'
 import { TTS_RATES } from '../../lib/speech/speechManager'
 import type { Block, LangCode } from '../../types'
@@ -59,7 +61,9 @@ export function DocumentListenPanel({
   targetLang?: LangCode
   onHighlight?: (index: number | null, side: ReaderSide) => void
 }) {
+  const { t } = useLocale()
   const r = useDocumentReader({ documentId, original, translated, sourceLang, targetLang })
+  const gemini = usesGeminiVoice(r.lang)
 
   useEffect(() => {
     onHighlight?.(r.highlightIndex, r.side)
@@ -101,7 +105,9 @@ export function DocumentListenPanel({
   }, [r])
 
   const paragraphLabel =
-    r.length === 0 ? 'No paragraphs' : `Paragraph ${Math.min(r.index + 1, r.length)} of ${r.length}`
+    r.length === 0
+      ? t('a11y.noParagraphs')
+      : t('a11y.paragraphOf', { n: Math.min(r.index + 1, r.length), total: r.length })
   const playing = r.status === 'speaking'
   const paused = r.status === 'paused'
 
@@ -111,19 +117,17 @@ export function DocumentListenPanel({
         <div>
           <h2 className="flex items-center gap-2 text-base font-semibold text-ink">
             <Volume2 size={18} className="text-brand-ink" aria-hidden />
-            Listen to Document
+            {t('a11y.listenTitle')}
           </h2>
-          <p className="mt-1 text-sm text-ink-2">
-            Hear the {langLabel(r.lang)} text. Voices are limited to Afaan Oromo, Amharic, and English.
-          </p>
+          <p className="mt-1 text-sm text-ink-2">{t('a11y.listenSub', { lang: t(`langs.${r.lang}`) })}</p>
         </div>
         {r.canTranslate && (
-          <div className="flex w-full rounded-2xl bg-bg-2 p-1 sm:w-auto" role="group" aria-label="Which text to read">
+          <div className="flex w-full rounded-2xl bg-bg-2 p-1 sm:w-auto" role="group" aria-label={t('a11y.whichText')}>
             <Seg active={r.side === 'original'} onClick={() => r.changeSide('original' as ReaderSide)}>
-              Original
+              {t('stage.original')}
             </Seg>
             <Seg active={r.side === 'translated'} onClick={() => r.changeSide('translated')}>
-              Translated
+              {t('stage.translated')}
             </Seg>
           </div>
         )}
@@ -131,21 +135,27 @@ export function DocumentListenPanel({
 
       {!r.supported && (
         <div className="mt-4">
-          <Alert tone="warn" title="Reading is not available">
-            This browser does not support the Web Speech API. Try Chrome, Edge, or Safari.
+          <Alert tone="warn" title={t('a11y.noSpeech')}>
+            {t('a11y.noSpeechBody')}
           </Alert>
         </div>
       )}
       {r.supported && r.langMissingMessage && (
         <div className="mt-4">
-          <Alert tone="info" title="No matching voice">
+          <Alert tone="info" title={t('a11y.noVoice')}>
             {r.langMissingMessage}
           </Alert>
         </div>
       )}
-      {r.error && r.supported && (
+      {(r.error || r.length === 0) && r.supported && (
         <div className="mt-4">
-          <Alert tone="warn">{r.error}</Alert>
+          <Alert tone="warn">
+            {r.length === 0
+              ? t('a11y.noText')
+              : r.error?.startsWith('a11y.')
+                ? t(r.error)
+                : r.error}
+          </Alert>
         </div>
       )}
 
@@ -160,7 +170,7 @@ export function DocumentListenPanel({
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(r.progress * 100)}
-          aria-label="Reading progress"
+          aria-label={t('a11y.progress')}
         >
           <div className="h-full rounded-full bg-brand transition-[width] duration-300" style={{ width: `${Math.round(r.progress * 100)}%` }} />
         </div>
@@ -171,28 +181,28 @@ export function DocumentListenPanel({
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         <Button size="sm" variant="secondary" disabled={!r.supported || r.length === 0} onClick={r.play} icon={<Play size={14} aria-hidden />}>
-          Play
+          {t('a11y.play')}
         </Button>
         <Button size="sm" variant="secondary" disabled={!playing} onClick={r.pause} icon={<Pause size={14} aria-hidden />}>
-          Pause
+          {t('a11y.pause')}
         </Button>
         <Button size="sm" variant="secondary" disabled={!paused} onClick={r.resume} icon={<Play size={14} aria-hidden />}>
-          Resume
+          {t('a11y.resume')}
         </Button>
         <Button size="sm" variant="secondary" disabled={r.status === 'idle'} onClick={r.stop} icon={<Square size={14} aria-hidden />}>
-          Stop
+          {t('a11y.stop')}
         </Button>
         <Button size="sm" variant="secondary" disabled={!r.supported || r.length === 0} onClick={r.prev} icon={<SkipBack size={14} aria-hidden />}>
-          Previous
+          {t('a11y.previous')}
         </Button>
         <Button size="sm" variant="secondary" disabled={!r.supported || r.length === 0} onClick={r.next} icon={<SkipForward size={14} aria-hidden />}>
-          Next
+          {t('a11y.nextSeg')}
         </Button>
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <label className="block text-sm">
-          <span className="mb-1.5 block font-medium text-ink">Reading speed</span>
+          <span className="mb-1.5 block font-medium text-ink">{t('a11y.speed')}</span>
           <select
             className="block min-h-11 w-full rounded-xl border border-input-line bg-input px-3 text-sm text-ink focus:border-focus focus:outline-none focus:ring-2 focus:ring-ring/60"
             value={String(r.rate)}
@@ -207,35 +217,35 @@ export function DocumentListenPanel({
           </select>
         </label>
         <label className="block text-sm">
-          <span className="mb-1.5 block font-medium text-ink">Voice</span>
+          <span className="mb-1.5 block font-medium text-ink">{t('a11y.voice')}</span>
           <select
             className="block min-h-11 w-full max-w-full rounded-xl border border-input-line bg-input px-3 text-sm text-ink focus:border-focus focus:outline-none focus:ring-2 focus:ring-ring/60"
-            value={r.voiceURI ?? ''}
+            value={gemini ? 'gemini-ai' : r.voiceURI ?? ''}
             onChange={(e) => r.changeVoice(e.target.value)}
-            disabled={!r.supported || r.voices.length === 0}
+            disabled={!r.supported || (!gemini && r.voices.length === 0)}
           >
-            {r.voices.length === 0 && (
-              <option value="">No Afaan Oromo, Amharic, or English voice found</option>
-            )}
-            {LANGUAGES.map((lang) => {
-              const list = voicesForLang(r.voices, lang.code)
-              if (!list.length) return null
-              return (
-                <optgroup key={lang.code} label={lang.label}>
-                  {list.map((v) => (
-                    <option key={v.voiceURI} value={v.voiceURI}>
-                      {v.name} ({v.lang})
-                    </option>
-                  ))}
-                </optgroup>
-              )
-            })}
+            {gemini && <option value="gemini-ai">{t('a11y.geminiVoice')}</option>}
+            {!gemini && r.voices.length === 0 && <option value="">{t('a11y.noVoiceFound')}</option>}
+            {!gemini &&
+              LANGUAGES.map((lang) => {
+                const list = voicesForLang(r.voices, lang.code)
+                if (!list.length) return null
+                return (
+                  <optgroup key={lang.code} label={t(`langs.${lang.code}`)}>
+                    {list.map((v) => (
+                      <option key={v.voiceURI} value={v.voiceURI}>
+                        {v.name} ({v.lang})
+                      </option>
+                    ))}
+                  </optgroup>
+                )
+              })}
           </select>
         </label>
       </div>
 
       <p className="mt-3 text-xs text-ink-2">
-        Shortcuts: Space play/pause · Left previous · Right next · Esc stop. They are ignored while you type.
+        {t('a11y.shortcuts')}
       </p>
     </Card>
   )

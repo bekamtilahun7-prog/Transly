@@ -1,7 +1,9 @@
 import { Eye, EyeOff, Lock } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { AccessibilityLauncher } from '../accessibility/AccessibilityLauncher'
+import { LanguageSwitcher } from '../common/LanguageSwitcher'
 import { ThemeToggle } from '../common/ThemeToggle'
+import { useLocale } from '../../context/LocaleContext'
 
 export const authInputClass =
   'block w-full min-h-11 rounded-xl border border-input-line bg-input px-3.5 text-sm text-ink placeholder:text-muted ' +
@@ -12,6 +14,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <div className="relative min-h-dvh overflow-hidden bg-bg text-ink">
       <div className="absolute right-4 top-4 z-10 flex items-center gap-2 sm:right-6 sm:top-6">
+        <LanguageSwitcher compact />
         <AccessibilityLauncher />
         <ThemeToggle />
       </div>
@@ -87,6 +90,7 @@ export function PasswordField({
   disabled?: boolean
 }) {
   const [show, setShow] = useState(false)
+  const { t } = useLocale()
   return (
     <AuthField id={id} label={label} icon={<Lock size={16} aria-hidden />} error={error}>
       <div className="relative">
@@ -106,7 +110,7 @@ export function PasswordField({
         <button
           type="button"
           onClick={() => setShow((s) => !s)}
-          aria-label={show ? 'Hide password' : 'Show password'}
+          aria-label={show ? t('auth.hidePass') : t('auth.showPass')}
           aria-pressed={show}
           className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted transition duration-150 hover:bg-hover hover:text-ink"
         >

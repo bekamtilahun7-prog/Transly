@@ -15,6 +15,7 @@ import issueReserve from '../api/issue/reserve';
 import issueRevoke from '../api/issue/revoke';
 import reviewRequest from '../api/review/request';
 import translate from '../api/translate';
+import tts from '../api/tts';
 import partnerVerify from '../api/v1/verify/[id]';
 import verify from '../api/verify/[id]';
 
@@ -27,6 +28,7 @@ const FIXED: Record<string, Handler> = {
   '/api/issue/reserve': issueReserve,
   '/api/issue/complete': issueComplete,
   '/api/issue/revoke': issueRevoke,
+  '/api/tts': tts,
 };
 const WITH_ID: Array<[RegExp, Handler]> = [
   [/^\/api\/verify\/([^/]+)$/, verify],

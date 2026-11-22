@@ -6,6 +6,7 @@ import { Alert } from '../components/common/Alert'
 import { Button } from '../components/common/Button'
 import { Logo } from '../components/common/Logo'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
 import { afterAuthPath, hasCompletedPlanChoice } from '../lib/subscription'
 
 function Sparkles() {
@@ -48,41 +49,40 @@ function RegisterArt() {
   )
 }
 
-const copy = {
-  login: {
-    titleLead: 'Welcome',
-    titleAccent: 'Back!',
-    subtitle: 'Log in to continue translating your documents.',
-    submit: 'Log In',
-    switchPrompt: "Don't have an account?",
-    switchLabel: 'Sign up',
-    switchTo: '/register',
-  },
-  register: {
-    titleLead: 'Create Your',
-    titleAccent: 'Account',
-    subtitle: 'Start translating and managing your documents with Transly.',
-    submit: 'Create Account',
-    switchPrompt: 'Already have an account?',
-    switchLabel: 'Log in',
-    switchTo: '/login',
-  },
-} as const
-
-function validName(name: string) {
+function validName(name: string, t: (path: string) => string) {
   const n = name.trim()
-  if (n.length < 2) return 'Enter your full name (at least 2 characters).'
-  if (n.length > 80) return 'Use 80 characters or fewer for your name.'
-  if (!/^[\p{L}][\p{L}\s'.-]*$/u.test(n)) return 'Use letters, spaces, apostrophes, or hyphens only.'
+  if (n.length < 2) return t('auth.nameShort')
+  if (n.length > 80) return t('auth.nameLong')
+  if (!/^[\p{L}][\p{L}\s'.-]*$/u.test(n)) return t('auth.nameChars')
   return null
 }
 
 export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
+  const { t } = useLocale()
   const { signIn, signUp } = useAuth()
   const nav = useNavigate()
   const loc = useLocation()
   const ids = { name: useId(), email: useId(), password: useId(), confirm: useId() }
-  const t = copy[mode]
+  const copy =
+    mode === 'login'
+      ? {
+          titleLead: t('auth.welcome'),
+          titleAccent: t('auth.back'),
+          subtitle: t('auth.loginSub'),
+          submit: t('auth.login'),
+          switchPrompt: t('auth.noAccount'),
+          switchLabel: t('auth.signUp'),
+          switchTo: '/register',
+        }
+      : {
+          titleLead: t('auth.createYour'),
+          titleAccent: t('auth.account'),
+          subtitle: t('auth.registerSub'),
+          submit: t('auth.create'),
+          switchPrompt: t('auth.haveAccount'),
+          switchLabel: t('auth.login'),
+          switchTo: '/login',
+        }
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -106,7 +106,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
     setNameError(null)
 
     if (mode === 'register' || name.trim()) {
-      const ne = validName(name)
+      const ne = validName(name, t)
       if (ne) {
         setNameError(ne)
         return
@@ -114,11 +114,11 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
     }
     if (mode === 'register') {
       if (password !== confirm) {
-        setConfirmError('Passwords do not match.')
+        setConfirmError(t('auth.mismatch'))
         return
       }
       if (password.length < 6) {
-        setConfirmError('Use at least 6 characters.')
+        setConfirmError(t('auth.shortPass'))
         return
       }
     }
@@ -147,16 +147,16 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
 
   return (
     <AuthShell>
-      <Link to="/" className="text-ink" aria-label="Transly home">
+      <Link to="/" className="text-ink" aria-label={t('nav.home')}>
         <Logo size={36} />
       </Link>
 
       <div className="mt-8">{mode === 'login' ? <LoginArt /> : <RegisterArt />}</div>
 
       <h1 className="mt-5 text-center text-[28px] font-semibold tracking-tight text-ink sm:text-[32px]">
-        {t.titleLead} <span className="text-orange-500">{t.titleAccent}</span>
+        {copy.titleLead} <span className="text-orange-500">{copy.titleAccent}</span>
       </h1>
-      <p className="mt-2 max-w-sm text-center text-sm text-ink-2">{t.subtitle}</p>
+      <p className="mt-2 max-w-sm text-center text-sm text-ink-2">{copy.subtitle}</p>
 
       <form
         onSubmit={onSubmit}
@@ -164,15 +164,15 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
       >
         {error && (
           <div className="mb-4">
-            <Alert tone="error" title={mode === 'login' ? 'Could not log in' : 'Could not create the account'}>
+            <Alert tone="error" title={mode === 'login' ? t('auth.loginFail') : t('auth.registerFail')}>
               {error}
             </Alert>
           </div>
         )}
         {resetOk && mode === 'login' && !error && (
           <div className="mb-4">
-            <Alert tone="success" title="Password updated">
-              Log in with your new password.
+            <Alert tone="success" title={t('auth.resetOk')}>
+              {t('auth.resetOkBody')}
             </Alert>
           </div>
         )}
@@ -180,7 +180,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
         <div className="space-y-4">
           <AuthField
             id={ids.name}
-            label={mode === 'login' ? 'Full name (optional)' : 'Full name'}
+            label={mode === 'login' ? t('auth.fullNameOptional') : t('auth.fullName')}
             icon={<UserRound size={16} aria-hidden />}
             error={nameError}
           >
@@ -202,7 +202,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
             />
           </AuthField>
 
-          <AuthField id={ids.email} label="Email Address" icon={<Mail size={16} aria-hidden />}>
+          <AuthField id={ids.email} label={t('auth.email')} icon={<Mail size={16} aria-hidden />}>
             <input
               id={ids.email}
               className={authInputClass}
@@ -219,10 +219,10 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
 
           <PasswordField
             id={ids.password}
-            label="Password"
+            label={t('auth.password')}
             value={password}
             onChange={setPassword}
-            placeholder={mode === 'login' ? 'Enter your password' : 'Create a strong password'}
+            placeholder={mode === 'login' ? t('auth.enterPassword') : t('auth.createPassword')}
             autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             disabled={busy}
           />
@@ -230,13 +230,13 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
           {mode === 'register' && (
             <PasswordField
               id={ids.confirm}
-              label="Confirm Password"
+              label={t('auth.confirm')}
               value={confirm}
               onChange={(v) => {
                 setConfirm(v)
                 setConfirmError(null)
               }}
-              placeholder="Confirm your password"
+              placeholder={t('auth.confirmPh')}
               autoComplete="new-password"
               error={confirmError}
               disabled={busy}
@@ -246,7 +246,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
           {mode === 'login' && (
             <p className="text-right">
               <Link to="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-700">
-                Forgot password?
+                {t('auth.forgot')}
               </Link>
             </p>
           )}
@@ -258,20 +258,20 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
             loading={busy}
             icon={mode === 'login' ? <LogIn size={18} aria-hidden /> : <UserPlus size={18} aria-hidden />}
           >
-            {t.submit}
+            {copy.submit}
           </Button>
         </div>
 
         <p className="mt-4 text-center text-sm text-ink-2">
-          {t.switchPrompt}{' '}
-          <Link to={t.switchTo} className="font-medium text-orange-600 transition hover:text-orange-700">
-            {t.switchLabel}
+          {copy.switchPrompt}{' '}
+          <Link to={copy.switchTo} className="font-medium text-orange-600 transition hover:text-orange-700">
+            {copy.switchLabel}
           </Link>
         </p>
 
         <div className="mt-5 flex items-center gap-3 text-xs text-muted">
           <span className="h-px flex-1 bg-line" />
-          or
+          {t('auth.or')}
           <span className="h-px flex-1 bg-line" />
         </div>
 
@@ -280,7 +280,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
           className="mt-4 flex min-h-10 items-center justify-center gap-1.5 text-sm text-ink-2 transition hover:text-ink"
         >
           <ArrowLeft size={16} aria-hidden />
-          Back to Home
+          {t('auth.backHome')}
         </Link>
       </form>
     </AuthShell>

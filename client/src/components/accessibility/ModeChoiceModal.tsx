@@ -1,11 +1,14 @@
 import { Accessibility, Eye } from 'lucide-react'
 import { useEffect, useId, useRef } from 'react'
 import { useAccessibility } from '../../context/AccessibilityContext'
+import { useLocale } from '../../context/LocaleContext'
 import { Button } from '../common/Button'
+import { LanguageSwitcher } from '../common/LanguageSwitcher'
 import { Logo } from '../common/Logo'
 
 export function ModeChoiceModal() {
   const { ready, chooserOpen, chooseMode, closeChooser, prefs } = useAccessibility()
+  const { t } = useLocale()
   const titleId = useId()
   const descId = useId()
   const firstRef = useRef<HTMLButtonElement>(null)
@@ -37,12 +40,15 @@ export function ModeChoiceModal() {
           data-no-speak
           className="w-full max-w-2xl rounded-3xl border border-line bg-surface p-4 shadow-2xl sm:p-8"
         >
-          <Logo size={32} />
+          <div className="flex items-start justify-between gap-3">
+            <Logo size={32} />
+            <LanguageSwitcher compact />
+          </div>
           <h1 id={titleId} className="mt-3 text-xl font-semibold tracking-tight text-ink sm:mt-4 sm:text-[28px]">
-            How would you like to use Transly?
+            {t('a11y.chooserTitle')}
           </h1>
           <p id={descId} className="mt-2 text-sm text-ink-2 sm:text-base">
-            Choose once. You can change this later from the accessibility button.
+            {t('a11y.chooserSub')}
           </p>
 
           <div className="mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2">
@@ -56,10 +62,8 @@ export function ModeChoiceModal() {
                 <Eye size={22} aria-hidden />
               </span>
               <span className="min-w-0">
-                <span className="mt-0 block text-base font-semibold text-ink sm:mt-3">Standard Mode</span>
-                <span className="mt-1 block text-sm text-ink-2 sm:mt-1.5">
-                  The usual Transly layout, colours, and controls.
-                </span>
+                <span className="mt-0 block text-base font-semibold text-ink sm:mt-3">{t('a11y.standard')}</span>
+                <span className="mt-1 block text-sm text-ink-2 sm:mt-1.5">{t('a11y.standardDesc')}</span>
               </span>
             </button>
             <button
@@ -71,10 +75,8 @@ export function ModeChoiceModal() {
                 <Accessibility size={22} aria-hidden />
               </span>
               <span className="min-w-0">
-                <span className="mt-0 block text-base font-semibold text-ink sm:mt-3">Accessible Mode</span>
-                <span className="mt-1 block text-sm text-ink-2 sm:mt-1.5">
-                  Larger text, high contrast, stronger focus, and a page reader for screen and keyboard use.
-                </span>
+                <span className="mt-0 block text-base font-semibold text-ink sm:mt-3">{t('a11y.accessible')}</span>
+                <span className="mt-1 block text-sm text-ink-2 sm:mt-1.5">{t('a11y.accessibleDesc')}</span>
               </span>
             </button>
           </div>
@@ -82,7 +84,7 @@ export function ModeChoiceModal() {
           {prefs && (
             <div className="mt-5 flex justify-end">
               <Button variant="ghost" onClick={closeChooser}>
-                Cancel
+                {t('a11y.cancel')}
               </Button>
             </div>
           )}

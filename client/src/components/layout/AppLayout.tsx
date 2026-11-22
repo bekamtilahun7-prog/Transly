@@ -2,9 +2,11 @@ import { ArrowRight, ChevronDown, CloudUpload, FileText, Home, Languages, LogOut
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useLocale } from '../../context/LocaleContext'
 import { displayNameOf, initialsOf } from '../../lib/format'
 import { AccessibilityLauncher } from '../accessibility/AccessibilityLauncher'
 import { Alert } from '../common/Alert'
+import { LanguageSwitcher } from '../common/LanguageSwitcher'
 import { Logo } from '../common/Logo'
 import { ThemeToggle } from '../common/ThemeToggle'
 
@@ -18,25 +20,27 @@ interface NavItem {
 
 function useNavItems(): NavItem[] {
   const { role } = useAuth()
+  const { t } = useLocale()
   const items: NavItem[] = [
-    { to: '/dashboard', label: 'Dashboard', icon: <Home size={20} aria-hidden /> },
+    { to: '/dashboard', label: t('app.dashboard'), icon: <Home size={20} aria-hidden /> },
     {
       to: '/documents',
-      label: 'My Documents',
+      label: t('app.myDocuments'),
       icon: <FileText size={20} aria-hidden />,
       match: (p) => p.startsWith('/documents') && p !== '/documents/upload',
     },
-    { to: '/documents/upload', label: 'Upload Document', icon: <CloudUpload size={20} aria-hidden /> },
+    { to: '/documents/upload', label: t('app.upload'), icon: <CloudUpload size={20} aria-hidden /> },
   ]
   // Shown only for the translator role. The backend still enforces access to the data itself.
   if (role === 'translator') {
-    items.push({ to: '/translator', label: 'Translator', icon: <Languages size={20} aria-hidden /> })
+    items.push({ to: '/translator', label: t('app.translator'), icon: <Languages size={20} aria-hidden /> })
   }
   return items
 }
 
 function SidebarContent({ onSignOut, signingOut }: { onSignOut: () => void; signingOut: boolean }) {
   const items = useNavItems()
+  const { t } = useLocale()
   const { pathname } = useLocation()
   const itemCls = (active: boolean) =>
     `flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-[15px] transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
@@ -44,7 +48,7 @@ function SidebarContent({ onSignOut, signingOut }: { onSignOut: () => void; sign
     }`
   return (
     <div className="flex h-full flex-col gap-6 overflow-y-auto px-4 py-6">
-      <Link to="/dashboard" className="px-2 text-ink" aria-label="Transly dashboard">
+      <Link to="/dashboard" className="px-2 text-ink" aria-label={t('app.dashboard')}>
         <Logo size={34} />
       </Link>
 
@@ -60,7 +64,7 @@ function SidebarContent({ onSignOut, signingOut }: { onSignOut: () => void; sign
         })}
         <button type="button" onClick={onSignOut} disabled={signingOut} className={itemCls(false)}>
           <LogOut size={20} aria-hidden />
-          {signingOut ? 'Logging out…' : 'Logout'}
+          {signingOut ? t('app.loggingOut') : t('app.logout')}
         </button>
       </nav>
 
@@ -69,18 +73,16 @@ function SidebarContent({ onSignOut, signingOut }: { onSignOut: () => void; sign
           <span className="mx-auto flex size-11 items-center justify-center rounded-full bg-brand-soft-2 text-brand-ink">
             <ShieldCheck size={22} aria-hidden />
           </span>
-          <p className="mt-2 font-semibold text-ink">Need Help?</p>
-          <p className="mt-1 text-xs text-ink-2">Read the frequently asked questions.</p>
+          <p className="mt-2 font-semibold text-ink">{t('app.needHelp')}</p>
+          <p className="mt-1 text-xs text-ink-2">{t('app.faqHint')}</p>
           <Link
             to="/#faq"
             className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-full bg-brand-soft-2 px-4 text-xs font-medium text-brand-ink transition duration-150 hover:brightness-95"
           >
-            Visit FAQ <ArrowRight size={14} aria-hidden />
+            {t('app.visitFaq')} <ArrowRight size={14} aria-hidden />
           </Link>
         </div>
-        <p className="px-2 text-[11px] leading-4 text-muted">
-          © {new Date().getFullYear()} Transly. An independent project, not a government service.
-        </p>
+        <p className="px-2 text-[11px] leading-4 text-muted">{t('app.independent', { year: new Date().getFullYear() })}</p>
       </div>
     </div>
   )
@@ -88,6 +90,7 @@ function SidebarContent({ onSignOut, signingOut }: { onSignOut: () => void; sign
 
 function UserMenu({ onSignOut }: { onSignOut: () => void }) {
   const { user, role } = useAuth()
+  const { t } = useLocale()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -130,7 +133,7 @@ function UserMenu({ onSignOut }: { onSignOut: () => void }) {
           <div className="px-3 py-2">
             <p className="truncate text-sm font-medium text-ink">{user.name || user.email}</p>
             {user.name ? <p className="truncate text-xs text-ink-2">{user.email}</p> : null}
-            <p className="text-xs text-ink-2">{role === 'translator' ? 'Translator account' : 'Document user'}</p>
+            <p className="text-xs text-ink-2">{role === 'translator' ? t('app.userTranslator') : t('app.userDoc')}</p>
           </div>
           <button
             type="button"
@@ -141,7 +144,7 @@ function UserMenu({ onSignOut }: { onSignOut: () => void }) {
             }}
             className="flex min-h-10 w-full items-center gap-2 rounded-xl px-3 text-sm text-ink transition duration-150 hover:bg-hover"
           >
-            <LogOut size={16} aria-hidden /> Logout
+            <LogOut size={16} aria-hidden /> {t('app.logout')}
           </button>
         </div>
       )}
@@ -151,6 +154,7 @@ function UserMenu({ onSignOut }: { onSignOut: () => void }) {
 
 /** Searches the user's own documents: submits to /documents?q=… */
 function DocumentSearch() {
+  const { t } = useLocale()
   const nav = useNavigate()
   const { pathname } = useLocation()
   const [params] = useSearchParams()
@@ -171,8 +175,8 @@ function DocumentSearch() {
         type="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Search your documents…"
-        aria-label="Search your documents"
+        placeholder={t('app.search')}
+        aria-label={t('app.searchAria')}
         className="block min-h-11 w-full rounded-full border border-line bg-surface pl-10 pr-4 text-sm text-ink placeholder:text-muted transition duration-150 focus:border-focus focus:outline-none focus:ring-2 focus:ring-ring/60"
       />
     </form>
@@ -181,6 +185,7 @@ function DocumentSearch() {
 
 /** Authenticated shell: sidebar (drawer on phones), top bar, page content. */
 export function AppLayout() {
+  const { t } = useLocale()
   const { signOut } = useAuth()
   const nav = useNavigate()
   const { pathname } = useLocation()
@@ -219,11 +224,11 @@ export function AppLayout() {
         {/* Mobile drawer */}
         {drawer && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <button type="button" aria-label="Close menu" className="absolute inset-0 bg-black/40" onClick={() => setDrawer(false)} />
+            <button type="button" aria-label={t('nav.closeMenu')} className="absolute inset-0 bg-black/40" onClick={() => setDrawer(false)} />
             <aside className="relative h-full w-72 max-w-[85vw] border-r border-line bg-surface shadow-2xl">
               <button
                 type="button"
-                aria-label="Close menu"
+                aria-label={t('nav.closeMenu')}
                 onClick={() => setDrawer(false)}
                 className="absolute right-3 top-5 flex size-10 items-center justify-center rounded-full text-ink-2 hover:bg-hover"
               >
@@ -238,7 +243,7 @@ export function AppLayout() {
           <header data-no-speak className="no-print sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-bg/80 px-4 py-3 backdrop-blur sm:px-6 lg:border-0 lg:bg-transparent lg:px-8 lg:py-5 lg:backdrop-blur-none">
             <button
               type="button"
-              aria-label="Open menu"
+              aria-label={t('nav.openMenu')}
               aria-expanded={drawer}
               onClick={() => setDrawer(true)}
               className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-ink lg:hidden"
@@ -247,6 +252,7 @@ export function AppLayout() {
             </button>
             <DocumentSearch />
             <div className="ml-auto flex shrink-0 items-center gap-2">
+              <LanguageSwitcher compact />
               <AccessibilityLauncher />
               <ThemeToggle />
               <UserMenu onSignOut={() => void onSignOut()} />
@@ -256,7 +262,7 @@ export function AppLayout() {
           <main id="main" data-page-content className="mx-auto w-full max-w-6xl flex-1 px-4 pb-10 pt-4 sm:px-6 lg:px-8 lg:pt-0">
             {signOutError && (
               <div className="mb-4">
-                <Alert tone="error" title="Could not log out">
+                <Alert tone="error" title={t('app.logoutFail')}>
                   {signOutError}
                 </Alert>
               </div>

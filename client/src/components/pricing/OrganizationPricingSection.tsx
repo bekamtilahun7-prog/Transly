@@ -1,3 +1,4 @@
+import { useLocale } from '../../context/LocaleContext'
 import { formatEtb, lineTotal, plansFor, unitPrice, type BillingPeriod, type PlanId } from '../../lib/pricingCatalog'
 import { OrganizationSeatSelector } from './OrganizationSeatSelector'
 import { PricingCard } from './PricingCard'
@@ -17,6 +18,7 @@ export function OrganizationPricingSection({
   busyId?: PlanId | null
   onChoose: (id: PlanId, seats: number) => void
 }) {
+  const { t } = useLocale()
   const plans = plansFor('organization')
   return (
     <div className="mx-auto grid max-w-3xl gap-5 md:grid-cols-2">
@@ -41,12 +43,9 @@ export function OrganizationPricingSection({
                   disabled={busyId === plan.id}
                 />
                 <p className="mt-3 text-sm text-ink">
-                  Total{' '}
+                  {t('pricing.total')}{' '}
                   <span className="font-semibold tabular-nums">{formatEtb(total)}</span>
-                  <span className="text-ink-2">
-                    {' '}
-                    for {n} {n === 1 ? 'member' : 'members'}
-                  </span>
+                  <span className="text-ink-2"> {n === 1 ? t('pricing.forMember') : t('pricing.forMembers', { n })}</span>
                 </p>
               </>
             }

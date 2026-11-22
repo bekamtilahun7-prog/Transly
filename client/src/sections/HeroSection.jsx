@@ -1,8 +1,11 @@
 import { ArrowRightIcon, CirclePlayIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import TranslationStage from "../components/home/TranslationStage";
+import { useLocale } from "../context/LocaleContext";
 
 export default function HeroSection() {
+  const { t } = useLocale();
+
   return (
     <div className="relative overflow-hidden">
       <div
@@ -25,22 +28,19 @@ export default function HeroSection() {
             className="flex items-center gap-2 rounded-full bg-orange-50 px-3.5 py-1.5 text-xs font-medium text-orange-800 transition hover:bg-orange-100"
           >
             <span className="home-loop home-loop-pulse size-2 rounded-full bg-orange-500" />
-            AI-Powered Translation
+            {t("hero.badge")}
           </a>
           <h1 className="mt-5 text-[40px]/12 font-semibold tracking-tight text-ink md:text-[54px]/16 xl:text-[44px]/14 min-[1440px]:text-[50px]/16">
-            Documents understood.
-            <span className="block text-orange-500">Languages connected.</span>
+            {t("hero.title1")}
+            <span className="block text-orange-500">{t("hero.title2")}</span>
           </h1>
-          <p className="mt-5 max-w-lg text-base/7 text-ink-2">
-            Translate your documents between Afaan Oromo, Amharic, and English.
-            Review, issue, and verify documents through one simple platform.
-          </p>
+          <p className="mt-5 max-w-lg text-base/7 text-ink-2">{t("hero.body")}</p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4 xl:justify-start">
             <Link
               to="/register"
               className="home-loop home-loop-shine flex items-center gap-2 rounded-full bg-orange-500 px-7 py-3.5 font-medium text-white shadow-lg shadow-orange-500/30 transition hover:bg-orange-600 active:bg-orange-700"
             >
-              <span>Start Translating</span>
+              <span>{t("hero.cta")}</span>
               <ArrowRightIcon size={18} />
             </Link>
             <a
@@ -48,7 +48,7 @@ export default function HeroSection() {
               className="flex items-center gap-2 rounded-full border border-line bg-surface px-6 py-3.5 font-medium text-ink transition hover:bg-hover"
             >
               <CirclePlayIcon size={18} />
-              <span>Explore How It Works</span>
+              <span>{t("hero.explore")}</span>
             </a>
           </div>
         </div>

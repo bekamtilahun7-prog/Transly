@@ -6,10 +6,12 @@ import { EmptyState, LoadingState } from '../components/common/LoadingState'
 import { PageHeader, StatCard } from '../components/common/ui'
 import { DocumentList } from '../components/documents/DocumentList'
 import { Clock3, Languages } from 'lucide-react'
+import { useLocale } from '../context/LocaleContext'
 import { api } from '../services/api'
 import type { DocumentRecord } from '../types'
 
 export default function TranslatorDashboardPage() {
+  const { t } = useLocale()
   const [docs, setDocs] = useState<DocumentRecord[] | null>(null)
   const [error, setError] = useState<unknown>(null)
 
@@ -26,23 +28,23 @@ export default function TranslatorDashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Translator Workspace"
-        title="Translator Dashboard"
-        description="Review and approve translated documents from the queue."
+        eyebrow={t('flow.transWork')}
+        title={t('flow.transDash')}
+        description={t('flow.transDashDesc')}
       />
 
-      {error != null && <ErrorAlert title="Could not load the review queue" error={error} onRetry={load} />}
+      {error != null && <ErrorAlert title={t('flow.queueFail')} error={error} onRetry={load} />}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <StatCard icon={<Clock3 size={20} />} label="Pending review" value={docs?.length ?? null} tone="brand" />
-        <StatCard icon={<Languages size={20} />} label="In this queue" value={docs?.length ?? null} tone="brand" />
+        <StatCard icon={<Clock3 size={20} />} label={t('flow.pending')} value={docs?.length ?? null} tone="brand" />
+        <StatCard icon={<Languages size={20} />} label={t('flow.inQueue')} value={docs?.length ?? null} tone="brand" />
       </div>
 
       <div className="rounded-2xl border border-line bg-surface">
-        {docs == null && error == null && <LoadingState label="Loading the queue…" />}
+        {docs == null && error == null && <LoadingState label={t('flow.queueLoad')} />}
         {docs && docs.length === 0 && (
-          <EmptyState title="Nothing waiting for review" action={<Link to="/dashboard" className={buttonClass('secondary')}>Back to dashboard</Link>}>
-            Documents appear here after an owner requests human review.
+          <EmptyState title={t('flow.queueEmpty')} action={<Link to="/dashboard" className={buttonClass('secondary')}>{t('flow.backDash')}</Link>}>
+            {t('flow.queueEmptyHint')}
           </EmptyState>
         )}
         {docs && docs.length > 0 && <DocumentList docs={docs} hrefFor={(d) => `/translator/${d.id}`} />}

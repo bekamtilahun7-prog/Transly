@@ -6,6 +6,7 @@ import { buttonClass } from '../components/common/Button'
 import { EmptyState, LoadingState } from '../components/common/LoadingState'
 import { PageHeader } from '../components/common/ui'
 import { DocumentList } from '../components/documents/DocumentList'
+import { useLocale } from '../context/LocaleContext'
 import { fileNameOf } from '../lib/format'
 import { api } from '../services/api'
 import type { DocumentRecord } from '../types'
@@ -15,11 +16,11 @@ const PAGE_SIZE = 5
 type Filter = 'all' | 'completed' | 'in_progress' | 'draft'
 type Sort = 'newest' | 'oldest'
 
-const FILTERS: { id: Filter; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'completed', label: 'Completed' },
-  { id: 'in_progress', label: 'In Progress' },
-  { id: 'draft', label: 'Draft' },
+const FILTERS: { id: Filter; key: 'all' | 'completed' | 'progress' | 'draft' }[] = [
+  { id: 'all', key: 'all' },
+  { id: 'completed', key: 'completed' },
+  { id: 'in_progress', key: 'progress' },
+  { id: 'draft', key: 'draft' },
 ]
 
 function matchesFilter(doc: DocumentRecord, filter: Filter) {
@@ -30,6 +31,7 @@ function matchesFilter(doc: DocumentRecord, filter: Filter) {
 }
 
 export default function DocumentsPage() {
+  const { t } = useLocale()
   const [params] = useSearchParams()
   const q = (params.get('q') ?? '').trim().toLowerCase()
   const [docs, setDocs] = useState<DocumentRecord[] | null>(null)
@@ -75,27 +77,27 @@ export default function DocumentsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Your Documents"
-        title="My Documents"
-        description="View and manage all your uploaded and translated documents."
+        eyebrow={t('docs.eyebrow')}
+        title={t('docs.title')}
+        description={t('docs.desc')}
         aside={
           <div className="flex items-center gap-5 rounded-2xl border border-line bg-surface px-5 py-3">
-            <MiniStat icon={<FileText size={16} className="text-orange-500" />} value={stats.total} label="Total Documents" />
+            <MiniStat icon={<FileText size={16} className="text-orange-500" />} value={stats.total} label={t('dash.total')} />
             <span className="hidden h-8 w-px bg-line sm:block" />
-            <MiniStat icon={<CheckCircle2 size={16} className="text-emerald-500" />} value={stats.completed} label="Completed" />
+            <MiniStat icon={<CheckCircle2 size={16} className="text-emerald-500" />} value={stats.completed} label={t('dash.completed')} />
             <span className="hidden h-8 w-px bg-line sm:block" />
-            <MiniStat icon={<Clock3 size={16} className="text-violet-500" />} value={stats.inProgress} label="In Progress" />
+            <MiniStat icon={<Clock3 size={16} className="text-violet-500" />} value={stats.inProgress} label={t('dash.progress')} />
           </div>
         }
       />
 
-      {error != null && <ErrorAlert title="Could not load documents" error={error} onRetry={load} />}
+      {error != null && <ErrorAlert title={t('docs.loadFail')} error={error} onRetry={load} />}
 
       <div className="rounded-2xl border border-line bg-surface">
         <div className="flex flex-col gap-3 border-b border-line px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <h2 className="flex items-center gap-2 text-base font-semibold text-ink">
             <FileText size={18} className="text-brand-ink" aria-hidden />
-            All Documents
+            {t('docs.allDocs')}
           </h2>
           <div className="flex flex-wrap items-center gap-2">
             {FILTERS.map((f) => {
@@ -109,20 +111,20 @@ export default function DocumentsPage() {
                     active ? 'bg-orange-500 text-white' : 'text-ink-2 hover:bg-hover hover:text-ink'
                   }`}
                 >
-                  {f.label}
+                  {t(`docs.${f.key}`)}
                 </button>
               )
             })}
             <label className="ml-auto flex items-center gap-2 text-xs text-ink-2 sm:ml-2">
-              <span className="hidden sm:inline">Sort by:</span>
+              <span className="hidden sm:inline">{t('docs.sortBy')}</span>
               <select
                 className="rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink"
                 value={sort}
                 onChange={(e) => setSort(e.target.value as Sort)}
-                aria-label="Sort documents"
+                aria-label={t('docs.sortAria')}
               >
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
+                <option value="newest">{t('docs.newest')}</option>
+                <option value="oldest">{t('docs.oldest')}</option>
               </select>
             </label>
           </div>
@@ -130,39 +132,37 @@ export default function DocumentsPage() {
 
         {q && (
           <p className="border-b border-line px-5 py-3 text-sm text-ink-2">
-            Showing results for <span className="font-medium text-ink">“{params.get('q')}”</span>
+            {t('docs.showingQ')} <span className="font-medium text-ink">“{params.get('q')}”</span>
             {' · '}
             <Link to="/documents" className="text-brand-ink hover:underline">
-              Clear search
+              {t('docs.clear')}
             </Link>
           </p>
         )}
-        {docs == null && error == null && <LoadingState label="Loading your documents…" />}
+        {docs == null && error == null && <LoadingState label={t('dash.loading')} />}
         {docs && shown.length === 0 && (
           <EmptyState
-            title={q || filter !== 'all' ? 'No matching documents' : 'No documents yet'}
+            title={q || filter !== 'all' ? t('docs.noMatch') : t('dash.noDocs')}
             action={
               <Link to="/documents/upload" className={buttonClass('primary', 'md')}>
-                Upload a document
+                {t('dash.upload')}
               </Link>
             }
           >
-            {q || filter !== 'all'
-              ? 'Try a different filter, name, or clear the search.'
-              : 'Upload a PDF, JPG, or PNG to start a translation.'}
+            {q || filter !== 'all' ? t('docs.noMatchHint') : t('dash.empty')}
           </EmptyState>
         )}
         {shown.length > 0 && <DocumentList docs={shown} />}
         {filtered.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-xs text-ink-2 sm:px-5">
             <p>
-              Showing {from}–{to} of {filtered.length} documents
+              {t('docs.showingRange', { from, to, count: filtered.length })}
             </p>
             {pages > 1 && (
               <div className="flex items-center gap-1">
                 <button
                   type="button"
-                  aria-label="Previous page"
+                  aria-label={t('docs.prev')}
                   disabled={safePage <= 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   className="flex size-8 items-center justify-center rounded-full border border-line hover:bg-hover disabled:opacity-40"
@@ -173,7 +173,7 @@ export default function DocumentsPage() {
                   <button
                     key={n}
                     type="button"
-                    aria-label={`Page ${n}`}
+                    aria-label={t('docs.page', { n })}
                     aria-current={n === safePage ? 'page' : undefined}
                     onClick={() => setPage(n)}
                     className={`flex size-8 items-center justify-center rounded-full text-xs font-medium ${
@@ -185,7 +185,7 @@ export default function DocumentsPage() {
                 ))}
                 <button
                   type="button"
-                  aria-label="Next page"
+                  aria-label={t('docs.next')}
                   disabled={safePage >= pages}
                   onClick={() => setPage((p) => Math.min(pages, p + 1))}
                   className="flex size-8 items-center justify-center rounded-full border border-line hover:bg-hover disabled:opacity-40"

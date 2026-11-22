@@ -6,10 +6,12 @@ import { Alert } from '../components/common/Alert'
 import { Button } from '../components/common/Button'
 import { Logo } from '../components/common/Logo'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
 
 type NavState = { email?: string }
 
 export default function ResetPasswordPage() {
+  const { t } = useLocale()
   const { completePasswordReset } = useAuth()
   const nav = useNavigate()
   const loc = useLocation()
@@ -29,11 +31,11 @@ export default function ResetPasswordPage() {
     setError(null)
     setConfirmError(null)
     if (password.length < 6) {
-      setConfirmError('Use at least 6 characters.')
+      setConfirmError(t('auth.shortPass'))
       return
     }
     if (password !== confirm) {
-      setConfirmError('Passwords do not match.')
+      setConfirmError(t('auth.mismatch'))
       return
     }
     setBusy(true)
@@ -49,7 +51,7 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthShell>
-      <Link to="/" className="text-ink" aria-label="Transly home">
+      <Link to="/" className="text-ink" aria-label={t('nav.home')}>
         <Logo size={36} />
       </Link>
 
@@ -61,12 +63,9 @@ export default function ResetPasswordPage() {
       </div>
 
       <h1 className="mt-5 text-center text-[28px] font-semibold tracking-tight text-ink sm:text-[32px]">
-        Choose a <span className="text-orange-500">new password</span>
+        {t('auth.newPassTitle')} <span className="text-orange-500">{t('auth.newPassAccent')}</span>
       </h1>
-      <p className="mt-2 max-w-sm text-center text-sm text-ink-2">
-        Your code was verified for <span className="font-medium text-ink">{email}</span>. Set a new password, then log
-        in.
-      </p>
+      <p className="mt-2 max-w-sm text-center text-sm text-ink-2">{t('auth.newPassSub', { email })}</p>
 
       <form
         onSubmit={onSubmit}
@@ -74,7 +73,7 @@ export default function ResetPasswordPage() {
       >
         {error && (
           <div className="mb-4">
-            <Alert tone="error" title="Could not update password">
+            <Alert tone="error" title={t('auth.resetFail')}>
               {error}
             </Alert>
           </div>
@@ -83,22 +82,22 @@ export default function ResetPasswordPage() {
         <div className="space-y-4">
           <PasswordField
             id={ids.password}
-            label="New password"
+            label={t('auth.password')}
             value={password}
             onChange={setPassword}
-            placeholder="Create a strong password"
+            placeholder={t('auth.createPassword')}
             autoComplete="new-password"
             disabled={busy}
           />
           <PasswordField
             id={ids.confirm}
-            label="Confirm new password"
+            label={t('auth.confirm')}
             value={confirm}
             onChange={(v) => {
               setConfirm(v)
               setConfirmError(null)
             }}
-            placeholder="Confirm your password"
+            placeholder={t('auth.confirmPh')}
             autoComplete="new-password"
             error={confirmError}
             disabled={busy}
@@ -111,7 +110,7 @@ export default function ResetPasswordPage() {
           size="lg"
           loading={busy}
         >
-          Save password
+          {t('auth.savePass')}
         </Button>
 
         <Link
@@ -119,7 +118,7 @@ export default function ResetPasswordPage() {
           className="mt-5 flex min-h-10 items-center justify-center gap-1.5 text-sm text-ink-2 transition hover:text-ink"
         >
           <ArrowLeft size={16} aria-hidden />
-          Back to login
+          {t('auth.login')}
         </Link>
       </form>
     </AuthShell>

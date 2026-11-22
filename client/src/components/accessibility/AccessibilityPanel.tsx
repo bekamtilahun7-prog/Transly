@@ -1,6 +1,7 @@
 import { Pause, Play, Square, Volume2, X } from 'lucide-react'
 import { useEffect, useId, useRef } from 'react'
 import { useAccessibility } from '../../context/AccessibilityContext'
+import { useLocale } from '../../context/LocaleContext'
 import { LANGUAGES } from '../../lib/constants'
 import { Button } from '../common/Button'
 
@@ -36,6 +37,7 @@ function Switch({
 
 export function AccessibilityPanel() {
   const a = useAccessibility()
+  const { t } = useLocale()
   const titleId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
   const ids = {
@@ -67,13 +69,13 @@ export function AccessibilityPanel() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 id={titleId} className="text-base font-semibold text-ink">
-            Accessibility
+            {t('a11y.title')}
           </h2>
-          <p className="mt-0.5 text-xs text-ink-2">Reading and display options for this browser.</p>
+          <p className="mt-0.5 text-xs text-ink-2">{t('a11y.sub')}</p>
         </div>
         <button
           type="button"
-          aria-label="Close accessibility controls"
+          aria-label={t('a11y.close')}
           onClick={a.closePanel}
           className="flex size-9 items-center justify-center rounded-full text-ink-2 hover:bg-hover hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
@@ -82,7 +84,7 @@ export function AccessibilityPanel() {
       </div>
 
       <div className="mt-3 space-y-1 border-t border-line pt-3">
-        <Switch id={ids.mode} checked={accessible} onChange={a.setAccessible} label="Accessible mode" />
+        <Switch id={ids.mode} checked={accessible} onChange={a.setAccessible} label={t('a11y.mode')} />
         <Switch
           id={ids.large}
           checked={Boolean(accessible && prefs?.largeText)}
@@ -90,7 +92,7 @@ export function AccessibilityPanel() {
             if (on && !accessible) a.setAccessible(true)
             a.setLargeText(on)
           }}
-          label="Larger text"
+          label={t('a11y.large')}
         />
         <Switch
           id={ids.contrast}
@@ -99,7 +101,7 @@ export function AccessibilityPanel() {
             if (on && !accessible) a.setAccessible(true)
             a.setHighContrast(on)
           }}
-          label="High contrast"
+          label={t('a11y.contrast')}
         />
         <Switch
           id={ids.auto}
@@ -108,17 +110,17 @@ export function AccessibilityPanel() {
             if (on && !accessible) a.setAccessible(true)
             a.setAutoSpeak(on)
           }}
-          label="Read pages after I open them"
+          label={t('a11y.auto')}
         />
       </div>
 
       <div className="mt-3 border-t border-line pt-3">
         <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-ink">
           <Volume2 size={16} aria-hidden />
-          Read this page
+          {t('a11y.readPage')}
         </p>
-        <p className="mb-2 text-xs text-ink-2">Voice language — Afaan Oromo, Amharic, or English only.</p>
-        <div className="mb-3 flex rounded-xl bg-bg-2 p-1" role="group" aria-label="Reading language">
+        <p className="mb-2 text-xs text-ink-2">{t('a11y.voiceLang')}</p>
+        <div className="mb-3 flex rounded-xl bg-bg-2 p-1" role="group" aria-label={t('a11y.readingLang')}>
           {LANGUAGES.map((lang) => (
             <button
               key={lang.code}
@@ -134,7 +136,7 @@ export function AccessibilityPanel() {
           ))}
         </div>
         {!a.pageSupported && (
-          <p className="mb-2 text-xs text-warn">This browser cannot read pages aloud.</p>
+          <p className="mb-2 text-xs text-warn">{t('a11y.unsupported')}</p>
         )}
         {a.pageError && <p className="mb-2 text-xs text-danger">{a.pageError}</p>}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -145,7 +147,7 @@ export function AccessibilityPanel() {
             onClick={a.readPage}
             icon={<Play size={14} aria-hidden />}
           >
-            Play
+            {t('a11y.play')}
           </Button>
           <Button
             size="sm"
@@ -154,7 +156,7 @@ export function AccessibilityPanel() {
             onClick={a.pausePage}
             icon={<Pause size={14} aria-hidden />}
           >
-            Pause
+            {t('a11y.pause')}
           </Button>
           <Button
             size="sm"
@@ -163,7 +165,7 @@ export function AccessibilityPanel() {
             onClick={a.resumePage}
             icon={<Play size={14} aria-hidden />}
           >
-            Resume
+            {t('a11y.resume')}
           </Button>
           <Button
             size="sm"
@@ -172,7 +174,7 @@ export function AccessibilityPanel() {
             onClick={a.stopPage}
             icon={<Square size={14} aria-hidden />}
           >
-            Stop
+            {t('a11y.stop')}
           </Button>
         </div>
       </div>
@@ -182,7 +184,7 @@ export function AccessibilityPanel() {
         onClick={a.openChooser}
         className="mt-4 w-full text-left text-xs font-medium text-brand-ink hover:underline"
       >
-        Choose Standard or Accessible mode again
+        {t('a11y.chooseAgain')}
       </button>
     </div>
   )

@@ -7,34 +7,34 @@ import { LoadingState } from '../components/common/LoadingState'
 import { Card } from '../components/common/ui'
 import { ReviewStatusBadge } from '../components/common/StatusBadge'
 import { ShareButtons, usePdfActions } from '../components/documents/PdfActions'
-import { docTypeLabel, langLabel } from '../lib/constants'
+import { useLocale } from '../context/LocaleContext'
 import { verifyUrl } from '../lib/links'
 import { api } from '../services/api'
 import type { VerifyResponse, VerifyResult } from '../types'
 
-const BANNER: Record<VerifyResult, { cls: string; icon: ReactNode; title: string; text: string }> = {
-  valid: {
-    cls: 'border-success/40 bg-success-bg text-success',
-    icon: <CheckCircle2 size={48} aria-hidden />,
-    title: 'Valid',
-    text: 'This document was issued through Transly and has not been revoked.',
-  },
-  revoked: {
-    cls: 'border-danger/40 bg-danger-bg text-danger',
-    icon: <XCircle size={48} aria-hidden />,
-    title: 'Revoked',
-    text: 'This document was issued through Transly but has since been revoked. Do not rely on it.',
-  },
-  not_found: {
-    cls: 'border-warn/40 bg-warn-bg text-warn',
-    icon: <CircleHelp size={48} aria-hidden />,
-    title: 'Not found',
-    text: 'No document with this verification ID exists in Transly. The code may be wrong, incomplete, or forged.',
-  },
-}
-
 export default function VerificationPage() {
   const { id = '' } = useParams()
+  const { t } = useLocale()
+  const BANNER: Record<VerifyResult, { cls: string; icon: ReactNode; title: string; text: string }> = {
+    valid: {
+      cls: 'border-success/40 bg-success-bg text-success',
+      icon: <CheckCircle2 size={48} aria-hidden />,
+      title: t('flow.validTitle'),
+      text: t('flow.validBody'),
+    },
+    revoked: {
+      cls: 'border-danger/40 bg-danger-bg text-danger',
+      icon: <XCircle size={48} aria-hidden />,
+      title: t('flow.revokedTitle'),
+      text: t('flow.revokedBody'),
+    },
+    not_found: {
+      cls: 'border-warn/40 bg-warn-bg text-warn',
+      icon: <CircleHelp size={48} aria-hidden />,
+      title: t('flow.notFoundTitle'),
+      text: t('flow.notFoundBody'),
+    },
+  }
   const [data, setData] = useState<VerifyResponse | null>(null)
   const [error, setError] = useState<unknown>(null)
 
@@ -53,13 +53,13 @@ export default function VerificationPage() {
   if (error != null) {
     return (
       <div className="mx-auto max-w-xl">
-        <ErrorAlert title="Could not check this document" error={error} onRetry={load} retryLabel="Try again">
-          <span className="text-xs">This is a connection or server problem. It does not mean the document is invalid.</span>
+        <ErrorAlert title={t('flow.checkFail')} error={error} onRetry={load} retryLabel={t('ui.tryAgain')}>
+          <span className="text-xs">{t('flow.checkConn')}</span>
         </ErrorAlert>
       </div>
     )
   }
-  if (!data) return <LoadingState label="Checking document…" />
+  if (!data) return <LoadingState label={t('flow.checking')} />
 
   const b = BANNER[data.result]
   const found = data.result !== 'not_found'
@@ -75,22 +75,22 @@ export default function VerificationPage() {
       {found && (
         <Card className="p-4 sm:p-5">
           <dl className="grid gap-4 text-sm sm:grid-cols-2">
-            <Item label="Issued by" value={data.issuerName} />
+            <Item label={t('flow.issuedBy')} value={data.issuerName} />
             <Item
-              label="Issue date"
+              label={t('flow.issueDate')}
               value={data.issuedAt ? new Date(data.issuedAt).toLocaleDateString(undefined, { dateStyle: 'long' }) : undefined}
             />
             <Item
-              label="Languages"
+              label={t('flow.languages')}
               value={
                 data.sourceLanguage && data.targetLanguage
-                  ? `${langLabel(data.sourceLanguage)} → ${langLabel(data.targetLanguage)}`
+                  ? `${t(`langs.${data.sourceLanguage}`)} → ${t(`langs.${data.targetLanguage}`)}`
                   : undefined
               }
             />
-            <Item label="Document type" value={data.documentType ? docTypeLabel(data.documentType) : undefined} />
+            <Item label={t('flow.docType')} value={data.documentType ? t(`types.${data.documentType}`) : undefined} />
             <div className="sm:col-span-2">
-              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-2">Review status</dt>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-ink-2">{t('flow.reviewStatus')}</dt>
               <dd className="mt-1.5">
                 <ReviewStatusBadge status={data.reviewStatus} />
               </dd>
@@ -105,27 +105,26 @@ export default function VerificationPage() {
             <>
               <div className="grid gap-2 sm:grid-cols-2">
                 <Button icon={<Download size={16} aria-hidden />} onClick={() => void actions.download()}>
-                  Download PDF
+                  {t('flow.downloadPdf')}
                 </Button>
                 <Button variant="secondary" icon={<Printer size={16} aria-hidden />} onClick={actions.print}>
-                  Print
+                  {t('ui.print')}
                 </Button>
               </div>
               {actions.error && <Alert tone="error">{actions.error}</Alert>}
-              <iframe title="Document PDF" src={data.pdfUrl} className="doc-paper h-[65vh] w-full rounded-xl border border-line" />
+              <iframe title={t('flow.pdfTitle')} src={data.pdfUrl} className="doc-paper h-[65vh] w-full rounded-xl border border-line" />
             </>
           ) : (
-            <p className="text-sm text-ink-2">The issuer has not made the PDF public, so it is not shown here.</p>
+            <p className="text-sm text-ink-2">{t('flow.pdfPrivate')}</p>
           )}
           <ShareButtons link={verifyUrl(id)} />
         </Card>
       )}
 
       <p className="text-center text-xs text-ink-2">
-        This page only confirms that the document exists in Transly. Transly is an independent project, not a government
-        service, and is not connected to any government system.{' '}
+        {t('flow.verifyFoot')}{' '}
         <Link to="/" className="font-medium text-brand-ink hover:underline">
-          About Transly
+          {t('flow.about')}
         </Link>
       </p>
     </div>

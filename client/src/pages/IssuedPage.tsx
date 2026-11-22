@@ -7,6 +7,7 @@ import { ConfirmDialog } from '../components/common/ConfirmDialog'
 import { Card, PageHeader } from '../components/common/ui'
 import { ShareButtons, usePdfActions } from '../components/documents/PdfActions'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
 import { getIssued, getIssuedDocumentId } from '../lib/issue'
 import { verifyUrl } from '../lib/links'
 import { canDownloadIssued, recordFreeDownload } from '../lib/subscription'
@@ -18,6 +19,7 @@ export default function IssuedPage() {
   const { verificationId = '' } = useParams()
   const loc = useLocation()
   const { user } = useAuth()
+  const { t } = useLocale()
   const sha = (loc.state as { sha256?: string } | null)?.sha256
   const mem = getIssued(verificationId)
   const [remoteUrl, setRemoteUrl] = useState<string | null>(null)
@@ -38,16 +40,14 @@ export default function IssuedPage() {
         if (!mem) {
           if (v.pdfUrl) setRemoteUrl(v.pdfUrl)
           else {
-            setRemoteErr(
-              'The PDF is not kept in this browser after a reload, and this document is not public, so it cannot be downloaded again here.',
-            )
+            setRemoteErr(t('flow.pdfGone'))
           }
         }
       })
       .catch((e) => {
         if (!mem) setRemoteErr(errMsg(e))
       })
-  }, [mem, verificationId])
+  }, [mem, verificationId, t])
 
   useEffect(() => {
     const docId = getIssuedDocumentId(verificationId)
@@ -91,24 +91,24 @@ export default function IssuedPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <PageHeader
-        eyebrow="Issued document"
-        title={revoked ? 'Document revoked' : 'Document issued'}
-        description={revoked ? 'Anyone who scans the QR code will see that it is no longer valid.' : 'Your PDF has been created and registered. Anyone can check it at the link below.'}
+        eyebrow={t('flow.issuedEyebrow')}
+        title={revoked ? t('flow.revokedDocTitle') : t('flow.issuedTitle')}
+        description={revoked ? t('flow.revokedDocDesc') : t('flow.issuedDesc')}
       />
 
       {revoked ? (
-        <Alert tone="error" title="Document revoked">
-          This document has been revoked. Anyone who scans its QR code will see that it is no longer valid.
+        <Alert tone="error" title={t('flow.revokedDocTitle')}>
+          {t('flow.revokedAlert')}
         </Alert>
       ) : (
-        <Alert tone="success" title="Document issued">
-          Your PDF has been created and registered. Anyone can check it at the verification link below.
+        <Alert tone="success" title={t('flow.issuedTitle')}>
+          {t('flow.issuedAlert')}
         </Alert>
       )}
 
       <Card className="space-y-4 p-4 sm:p-5">
         <div>
-          <p className="text-sm font-semibold text-ink">Verification link (in the PDF QR code)</p>
+          <p className="text-sm font-semibold text-ink">{t('flow.verifyLink')}</p>
           <p className="mt-1 break-all rounded-xl bg-bg-2 p-3 font-mono text-xs text-ink">{link}</p>
           {sha && <p className="mt-1 break-all text-xs text-ink-2">SHA-256: {sha}</p>}
         </div>
@@ -121,19 +121,17 @@ export default function IssuedPage() {
               onClick={() => {
                 const res = recordFreeDownload(verificationId)
                 if (!res.ok) {
-                  setDownloadLimitError(
-                    `Free plan allows ${res.limit} downloads. Payment is required for more.`,
-                  )
+                  setDownloadLimitError(t('flow.downloadLimitHit', { n: res.limit }))
                   return
                 }
                 setDownloadLimitError(null)
                 void actions.download()
               }}
             >
-              Download PDF
+              {t('flow.downloadPdf')}
             </Button>
             <Button variant="secondary" icon={<Printer size={16} aria-hidden />} onClick={actions.print}>
-              Print
+              {t('ui.print')}
             </Button>
           </div>
         ) : (
@@ -141,42 +139,40 @@ export default function IssuedPage() {
         )}
         <ShareButtons link={link} />
         {downloadLimitError && (
-          <Alert tone="warn" title="Download limit">
+          <Alert tone="warn" title={t('flow.downloadLimit')}>
             {downloadLimitError}{' '}
             <Link to="/onboarding" className="font-medium text-brand-ink hover:underline">
-              View plans
+              {t('checkout.viewPlans')}
             </Link>
           </Alert>
         )}
         {!downloadGate.ok && !downloadLimitError && (
-          <Alert tone="warn" title="Free download limit reached">
-            This plan includes {downloadGate.limit} downloads. Payment is required to download more files.
+          <Alert tone="warn" title={t('flow.downloadLimitReached')}>
+            {t('flow.downloadLimitBody', { n: downloadGate.limit })}
           </Alert>
         )}
         {actions.error && (
-          <Alert tone="error" title="Action failed">
+          <Alert tone="error" title={t('flow.actionFail')}>
             {actions.error}
           </Alert>
         )}
         <Link to={`/v/${verificationId}`} className="inline-block text-sm font-medium text-brand-ink hover:underline">
-          Open the public verification page
+          {t('flow.openVerify')}
         </Link>
       </Card>
 
       {isOwner && !revoked && (
         <Card className="space-y-3 border-danger/30 p-4 sm:p-5">
-          <h2 className="font-semibold text-danger">Revoke this document</h2>
-          <p className="text-sm text-ink-2">
-            Revoking marks the document as no longer valid. Anyone who scans the QR code will see “Revoked”. This cannot be undone.
-          </p>
-          {revokeError != null && <ErrorAlert title="Could not revoke" error={revokeError} onRetry={() => void revoke()} />}
+          <h2 className="font-semibold text-danger">{t('flow.revokeTitle')}</h2>
+          <p className="text-sm text-ink-2">{t('flow.revokeBody')}</p>
+          {revokeError != null && <ErrorAlert title={t('flow.revokeFail')} error={revokeError} onRetry={() => void revoke()} />}
           <Button variant="danger" onClick={() => setConfirming(true)}>
-            Revoke…
+            {t('flow.revokeBtn')}
           </Button>
           <ConfirmDialog
             open={confirming}
-            title="Revoke this document?"
-            confirmLabel="Yes, revoke it"
+            title={t('flow.revokeAsk')}
+            confirmLabel={t('flow.revokeYes')}
             confirmVariant="danger"
             busy={revoking}
             onConfirm={() => void revoke()}
@@ -185,18 +181,18 @@ export default function IssuedPage() {
               setRevokeError(null)
             }}
           >
-            Anyone who scans the QR code will see that it is no longer valid. This cannot be undone.
+            {t('flow.revokeConfirm')}
           </ConfirmDialog>
         </Card>
       )}
 
       {pdfUrl && (
         <Card className="overflow-hidden p-2">
-          <iframe title="Issued PDF" src={pdfUrl} className="doc-paper h-[70vh] w-full rounded-xl" />
+          <iframe title={t('flow.issuedPdf')} src={pdfUrl} className="doc-paper h-[70vh] w-full rounded-xl" />
         </Card>
       )}
       <Link to="/documents" className={buttonClass('ghost', 'sm')}>
-        Back to my documents
+        {t('flow.backDocs')}
       </Link>
     </div>
   )

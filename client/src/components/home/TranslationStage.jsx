@@ -1,5 +1,6 @@
 import { CheckIcon, UserRoundIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useLocale } from "../../context/LocaleContext";
 import { Logo } from "../common/Logo";
 import { useLoopIndex, useMotionOk } from "../../lib/motion";
 
@@ -35,7 +36,7 @@ function LangBadge({ code }) {
   );
 }
 
-function PageCard({ side, lang, lines }) {
+function PageCard({ side, lang, lines, originalLabel, translatedLabel }) {
   return (
     <div
       className={`relative overflow-hidden rounded-xl border p-3 ${
@@ -52,7 +53,7 @@ function PageCard({ side, lang, lines }) {
       <div className="flex items-center gap-2">
         <LangBadge code={lang.code} />
         <div className="leading-tight">
-          <p className="text-[11px] font-semibold text-ink">{side === "from" ? "Original" : "Translated"}</p>
+          <p className="text-[11px] font-semibold text-ink">{side === "from" ? originalLabel : translatedLabel}</p>
           <p className="text-[10px] text-ink-2">{lang.name}</p>
         </div>
       </div>
@@ -70,9 +71,14 @@ function PageCard({ side, lang, lines }) {
 }
 
 export default function TranslationStage() {
+  const { t } = useLocale();
   const ok = useMotionOk();
   const pair = PAIRS[useLoopIndex(PAIRS.length, 4800)];
   const rootRef = useRef(null);
+  const named = {
+    from: { ...pair.from, name: t(`langs.${pair.from.code.toLowerCase()}`) },
+    to: { ...pair.to, name: t(`langs.${pair.to.code.toLowerCase()}`) },
+  };
 
   useEffect(() => {
     if (!ok) return;
@@ -140,20 +146,20 @@ export default function TranslationStage() {
             <Logo size={22} />
           </span>
           <div className="hidden items-center gap-5 text-[11px] text-ink-2 sm:flex">
-            <span className="font-medium text-ink">Dashboard</span>
-            <span>Documents</span>
+            <span className="font-medium text-ink">{t("stage.dashboard")}</span>
+            <span>{t("stage.documents")}</span>
           </div>
           <span className="flex size-7 items-center justify-center rounded-full bg-bg-2 text-ink-2">
             <UserRoundIcon size={14} />
           </span>
         </div>
 
-        <p className="mt-4 text-sm font-semibold text-ink">Live translation</p>
-        <p className="mt-0.5 text-[11px] text-ink-2">Afaan Oromo · Amharic · English</p>
+        <p className="mt-4 text-sm font-semibold text-ink">{t("stage.live")}</p>
+        <p className="mt-0.5 text-[11px] text-ink-2">{t("stage.langs")}</p>
 
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <PageCard side="from" lang={pair.from} lines={pair.from.lines} />
-          <PageCard side="to" lang={pair.to} lines={pair.to.lines} />
+          <PageCard side="from" lang={named.from} lines={named.from.lines} originalLabel={t("stage.original")} translatedLabel={t("stage.translated")} />
+          <PageCard side="to" lang={named.to} lines={named.to.lines} originalLabel={t("stage.original")} translatedLabel={t("stage.translated")} />
         </div>
       </div>
 
@@ -172,7 +178,7 @@ export default function TranslationStage() {
         <span className="flex size-5 items-center justify-center rounded-full bg-green-600 text-white">
           <CheckIcon size={12} strokeWidth={3} />
         </span>
-        <span className="text-[11px] font-semibold text-ink">Verified QR</span>
+        <span className="text-[11px] font-semibold text-ink">{t("stage.verified")}</span>
       </div>
     </div>
   );

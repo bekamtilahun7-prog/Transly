@@ -9,7 +9,7 @@ import { IssuePanel } from '../components/documents/IssuePanel'
 import { SideBySide } from '../components/documents/SideBySide'
 import type { ReaderSide } from '../hooks/useDocumentReader'
 import { checkTranslated, loadDraft, sameBlocks, saveDraft } from '../lib/draft'
-import { langLabel } from '../lib/constants'
+import { useLocale } from '../context/LocaleContext'
 import { api } from '../services/api'
 import type { Block, DocumentRecord } from '../types'
 
@@ -18,6 +18,7 @@ type Phase = 'loading' | 'translating' | 'ready' | 'error'
 export default function TranslationPage() {
   const { id = '' } = useParams()
   const nav = useNavigate()
+  const { t } = useLocale()
   const [doc, setDoc] = useState<DocumentRecord | null>(null)
   const [original, setOriginal] = useState<Block[]>([])
   const [translated, setTranslated] = useState<Block[]>([])
@@ -97,14 +98,14 @@ export default function TranslationPage() {
     }
   }
 
-  if (phase === 'loading') return <LoadingState label="Loading…" />
-  if (phase === 'translating') return <LoadingState label="Translating… this can take up to a minute." />
+  if (phase === 'loading') return <LoadingState label={t('flow.transLoading')} />
+  if (phase === 'translating') return <LoadingState label={t('flow.transBusy')} />
   if (phase === 'error' || !doc) {
     return (
       <div className="mx-auto max-w-2xl space-y-3">
-        <ErrorAlert title="Translation failed" error={error} onRetry={() => void init()}>
+        <ErrorAlert title={t('flow.transFail')} error={error} onRetry={() => void init()}>
           <Link to={`/documents/${id}/review`} className={buttonClass('secondary', 'sm')}>
-            Back to extraction
+            {t('flow.backExtract')}
           </Link>
         </ErrorAlert>
       </div>
@@ -114,9 +115,9 @@ export default function TranslationPage() {
   return (
     <div className="space-y-5">
       <PageHeader
-        eyebrow="Translation"
-        title="Review translation"
-        description={`${langLabel(doc.sourceLang)} → ${langLabel(doc.targetLang)}. The PREVIEW mark stays until the document is issued.`}
+        eyebrow={t('flow.transEyebrow')}
+        title={t('flow.transTitle')}
+        description={t('flow.transDesc', { from: t(`langs.${doc.sourceLang}`), to: t(`langs.${doc.targetLang}`) })}
       />
       <DocumentListenPanel
         documentId={id}
@@ -141,31 +142,29 @@ export default function TranslationPage() {
             return next
           })
         }
-        originalLabel={langLabel(doc.sourceLang)}
-        translatedLabel={langLabel(doc.targetLang)}
+        originalLabel={t(`langs.${doc.sourceLang}`)}
+        translatedLabel={t(`langs.${doc.targetLang}`)}
         preview
       />
       <IssuePanel
         doc={doc}
         blocks={translated}
         reviewStatus="machine"
-        title="Issue now (machine translated)"
-        submitLabel="Issue PDF with QR code"
-        intro="The PDF will say “Machine translated, not human reviewed”."
-        confirmText="This will create an issued PDF labelled as machine translated, not human reviewed."
+        title={t('flow.issueNow')}
+        submitLabel={t('flow.issuePdf')}
+        intro={t('flow.issueIntro')}
+        confirmText={t('flow.issueConfirm')}
       />
       <Card className="p-4 sm:p-5">
-        <h2 className="font-semibold text-ink">Send for human review</h2>
-        <p className="mt-1 text-sm text-ink-2">
-          A translator checks the translation saved on the server, then issues the PDF with their name.
-        </p>
+        <h2 className="font-semibold text-ink">{t('flow.sendReview')}</h2>
+        <p className="mt-1 text-sm text-ink-2">{t('flow.sendReviewBody')}</p>
         {reviewError != null && (
           <div className="mt-3">
-            <ErrorAlert title="Could not send for review" error={reviewError} onRetry={() => void sendForReview()} />
+            <ErrorAlert title={t('flow.sendFail')} error={reviewError} onRetry={() => void sendForReview()} />
           </div>
         )}
         <Button className="mt-4" variant="secondary" loading={reviewBusy} onClick={() => void sendForReview()}>
-          Send to human translator
+          {t('flow.sendTranslator')}
         </Button>
       </Card>
     </div>

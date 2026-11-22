@@ -3,6 +3,7 @@
  * Page reading and document reading share this so they never speak at once.
  */
 
+import { bcp47ToLang, fetchGeminiSpeech, usesGeminiVoice } from './aiTts'
 import { filterTranslyVoices, isTranslyVoice } from './voices'
 
 export type SpeechOwner = 'page' | 'document'
@@ -42,6 +43,7 @@ function synth(): SpeechSynthesis | null {
 
 export function speechSupported(): boolean {
   try {
+    if (typeof Audio === 'function') return true
     return synth() !== null && typeof SpeechSynthesisUtterance === 'function'
   } catch {
     return false
@@ -52,6 +54,8 @@ let owner: SpeechOwner | null = null
 let status: SpeechStatus = 'idle'
 let voices: SpeechSynthesisVoice[] = []
 let current: SpeechSynthesisUtterance | null = null
+let audioEl: HTMLAudioElement | null = null
+let abortCtl: AbortController | null = null
 let speakTimer: ReturnType<typeof setTimeout> | null = null
 let generation = 0
 let voicesBound = false
@@ -135,17 +139,37 @@ export function subscribeSpeech(fn: Listener) {
   return () => listeners.delete(fn)
 }
 
+function stopAudio() {
+  abortCtl?.abort()
+  abortCtl = null
+  if (audioEl) {
+    audioEl.onended = null
+    audioEl.onerror = null
+    audioEl.pause()
+    if (audioEl.src.startsWith('blob:')) URL.revokeObjectURL(audioEl.src)
+    audioEl.src = ''
+    audioEl = null
+  }
+}
+
 export function stopSpeech(by?: SpeechOwner) {
   if (by && owner && by !== owner) return
   generation += 1
   clearTimer()
   current = null
+  stopAudio()
   synth()?.cancel()
   setStatus('idle', null)
 }
 
 export function pauseSpeech(by: SpeechOwner) {
-  if (owner !== by || status !== 'speaking' || !current) return
+  if (owner !== by || status !== 'speaking') return
+  if (audioEl && !audioEl.paused) {
+    audioEl.pause()
+    setStatus('paused', by)
+    return
+  }
+  if (!current) return
   const s = synth()
   if (!s) return
   s.pause()
@@ -155,33 +179,23 @@ export function pauseSpeech(by: SpeechOwner) {
 
 export function resumeSpeech(by: SpeechOwner) {
   if (owner !== by || status !== 'paused') return
+  if (audioEl) {
+    void audioEl.play().then(() => setStatus('speaking', by))
+    return
+  }
   const s = synth()
   if (!s) return
   s.resume()
   setStatus('speaking', by)
 }
 
-export function speakText(by: SpeechOwner, text: string, opts: SpeakOptions = {}) {
+function speakBrowser(by: SpeechOwner, trimmed: string, opts: SpeakOptions, gen: number) {
   const s = synth()
-  if (!s) {
+  if (!s || typeof SpeechSynthesisUtterance !== 'function') {
     opts.onError?.('This browser cannot read text aloud.')
+    setStatus('idle', null)
     return
   }
-  const trimmed = text.replace(/\s+/g, ' ').trim()
-  if (!trimmed) {
-    opts.onEnd?.()
-    return
-  }
-
-  generation += 1
-  const gen = generation
-  clearTimer()
-  s.cancel()
-  current = null
-  owner = by
-  status = 'speaking'
-  emit()
-
   const run = () => {
     if (gen !== generation) return
     const u = new SpeechSynthesisUtterance(trimmed)
@@ -228,7 +242,67 @@ export function speakText(by: SpeechOwner, text: string, opts: SpeakOptions = {}
     current = u
     s.speak(u)
   }
-
-  // cancel() then speak() in the same tick is dropped in Chrome.
   speakTimer = setTimeout(run, 40)
+}
+
+async function speakGemini(by: SpeechOwner, trimmed: string, lang: 'om' | 'am' | 'en', opts: SpeakOptions, gen: number) {
+  const ctl = new AbortController()
+  abortCtl = ctl
+  try {
+    const blob = await fetchGeminiSpeech(trimmed, lang, ctl.signal)
+    if (gen !== generation) return
+    const url = URL.createObjectURL(blob)
+    const el = new Audio(url)
+    el.playbackRate = Math.min(2, Math.max(0.5, opts.rate ?? 1))
+    el.onended = () => {
+      if (gen !== generation) return
+      if (el.src.startsWith('blob:')) URL.revokeObjectURL(el.src)
+      audioEl = null
+      setStatus('idle', null)
+      opts.onEnd?.()
+    }
+    el.onerror = () => {
+      if (gen !== generation) return
+      if (el.src.startsWith('blob:')) URL.revokeObjectURL(el.src)
+      audioEl = null
+      setStatus('idle', null)
+      opts.onError?.('Could not play the generated voice.')
+    }
+    audioEl = el
+    await el.play()
+    if (gen !== generation) return
+    setStatus('speaking', by)
+    opts.onStart?.()
+  } catch (err) {
+    if (gen !== generation) return
+    if ((err as { name?: string })?.name === 'AbortError') return
+    setStatus('idle', null)
+    opts.onError?.((err as Error)?.message || 'Could not generate speech.')
+  }
+}
+
+export function speakText(by: SpeechOwner, text: string, opts: SpeakOptions = {}) {
+  const trimmed = text.replace(/\s+/g, ' ').trim()
+  if (!trimmed) {
+    opts.onEnd?.()
+    return
+  }
+
+  generation += 1
+  const gen = generation
+  clearTimer()
+  stopAudio()
+  synth()?.cancel()
+  current = null
+  owner = by
+  status = 'speaking'
+  emit()
+
+  const lang = bcp47ToLang(opts.lang)
+  if (lang && usesGeminiVoice(lang)) {
+    void speakGemini(by, trimmed, lang, opts, gen)
+    return
+  }
+
+  speakBrowser(by, trimmed, opts, gen)
 }

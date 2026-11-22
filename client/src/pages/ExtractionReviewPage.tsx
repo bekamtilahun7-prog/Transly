@@ -8,7 +8,7 @@ import { Card, PageHeader } from '../components/common/ui'
 import { DocumentListenPanel } from '../components/documents/DocumentListenPanel'
 import { DocumentPreview } from '../components/documents/DocumentPreview'
 import { BlockCaption, TextBlockEditor, hasUnclear } from '../components/documents/TextBlockEditor'
-import { docTypeLabel, langLabel } from '../lib/constants'
+import { useLocale } from '../context/LocaleContext'
 import { loadDraft, saveDraft } from '../lib/draft'
 import { fileNameOf } from '../lib/format'
 import { api } from '../services/api'
@@ -19,6 +19,7 @@ type Phase = 'loading' | 'extracting' | 'ready' | 'error'
 export default function ExtractionReviewPage() {
   const { id = '' } = useParams()
   const nav = useNavigate()
+  const { t } = useLocale()
   const [doc, setDoc] = useState<DocumentRecord | null>(null)
   const [blocks, setBlocks] = useState<Block[]>([])
   const [phase, setPhase] = useState<Phase>('loading')
@@ -44,7 +45,7 @@ export default function ExtractionReviewPage() {
       setPhase('extracting')
       const res = await api.extract(id, d.sourceLang)
       if (!Array.isArray(res.blocks) || res.blocks.length === 0) {
-        throw new Error('No text could be found in this document. Try a sharper photo or a different file.')
+        throw new Error(t('flow.extractEmpty'))
       }
       setDetected(res)
       setBlocks(res.blocks)
@@ -54,7 +55,7 @@ export default function ExtractionReviewPage() {
       setError(e)
       setPhase('error')
     }
-  }, [id])
+  }, [id, t])
 
   useEffect(() => {
     void run()
@@ -70,14 +71,14 @@ export default function ExtractionReviewPage() {
 
   const unclearCount = blocks.filter((b) => hasUnclear(b.text)).length
 
-  if (phase === 'loading') return <LoadingState label="Loading document…" />
-  if (phase === 'extracting') return <LoadingState label="Reading the text in your document… this can take up to a minute." />
+  if (phase === 'loading') return <LoadingState label={t('flow.extractLoading')} />
+  if (phase === 'extracting') return <LoadingState label={t('flow.extractBusy')} />
   if (phase === 'error') {
     return (
       <div className="mx-auto max-w-2xl space-y-3">
-        <ErrorAlert title="Could not read the document" error={error} onRetry={() => void run()}>
+        <ErrorAlert title={t('flow.extractFail')} error={error} onRetry={() => void run()}>
           <Link to="/documents/upload" className={buttonClass('secondary', 'sm')}>
-            Upload a different file
+            {t('flow.extractOther')}
           </Link>
         </ErrorAlert>
       </div>
@@ -87,32 +88,35 @@ export default function ExtractionReviewPage() {
   return (
     <div className="space-y-5">
       <Link to="/documents" className="inline-flex items-center gap-1.5 text-sm text-ink-2 hover:text-ink">
-        <ArrowLeft size={16} aria-hidden /> Back to My Documents
+        <ArrowLeft size={16} aria-hidden /> {t('flow.backDocs')}
       </Link>
       <PageHeader
-        eyebrow="Extraction"
-        title="Extraction Review"
-        description="Review and correct the extracted text. Translation does not start until you click Continue."
+        eyebrow={t('flow.extractEyebrow')}
+        title={t('flow.extractTitle')}
+        description={t('flow.extractDesc')}
         aside={
           doc && (
             <p className="text-sm text-ink-2">
-              {fileNameOf(doc)} · {langLabel(doc.sourceLang)} → {langLabel(doc.targetLang)} · {docTypeLabel(doc.docType)}
+              {fileNameOf(doc)} · {t(`langs.${doc.sourceLang}`)} → {t(`langs.${doc.targetLang}`)} · {t(`types.${doc.docType}`)}
             </p>
           )
         }
       />
 
       {detected && doc && detected.detectedLanguage !== doc.sourceLang && (
-        <Alert tone="warn" title="Language mismatch">
-          You chose {langLabel(doc.sourceLang)}, but the document looks like {langLabel(detected.detectedLanguage)}.
+        <Alert tone="warn" title={t('flow.mismatch')}>
+          {t('flow.mismatchBody', {
+            chosen: t(`langs.${doc.sourceLang}`),
+            detected: t(`langs.${detected.detectedLanguage}`),
+          })}
         </Alert>
       )}
       {unclearCount > 0 ? (
-        <Alert tone="warn" title={`${unclearCount} unclear ${unclearCount === 1 ? 'part' : 'parts'}`}>
-          Text marked [unclear] could not be read confidently. Type the correct text, or leave the marker.
+        <Alert tone="warn" title={unclearCount === 1 ? t('flow.unclearOne') : t('flow.unclearMany', { n: unclearCount })}>
+          {t('flow.unclearBody')}
         </Alert>
       ) : (
-        <Alert tone="success">No unclear parts were marked. Please still read it carefully.</Alert>
+        <Alert tone="success">{t('flow.unclearNone')}</Alert>
       )}
 
       {doc && (
@@ -130,7 +134,7 @@ export default function ExtractionReviewPage() {
           <DocumentPreview url={fileUrl} fileName={doc ? fileNameOf(doc) : 'document'} />
         </Card>
         <Card className="p-4 sm:p-5">
-          <p className="mb-3 font-semibold text-ink">Extracted Text</p>
+          <p className="mb-3 font-semibold text-ink">{t('flow.extractedText')}</p>
           <ol className="space-y-3">
             {blocks.map((b, i) => (
               <li key={b.id}>
@@ -144,7 +148,7 @@ export default function ExtractionReviewPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link to="/documents" className={buttonClass('secondary')}>
-          Previous
+          {t('flow.previous')}
         </Link>
         <Button
           icon={<ArrowRight size={16} />}
@@ -153,7 +157,7 @@ export default function ExtractionReviewPage() {
             nav(`/documents/${id}/translation`)
           }}
         >
-          Continue to Translation
+          {t('flow.continueTrans')}
         </Button>
       </div>
     </div>

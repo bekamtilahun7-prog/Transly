@@ -12,12 +12,11 @@ import { useSpeechQueue } from '../hooks/useSpeechQueue'
 import {
   applyA11yClasses,
   readA11yPrefs,
-  readTtsPrefs,
   writeA11yPrefs,
-  writeTtsPrefs,
   type A11yMode,
   type A11yPrefs,
 } from '../lib/speech/a11yPrefs'
+import { useLocale } from './LocaleContext'
 import { collectPageSegments } from '../lib/speech/pageContent'
 import { bestVoiceForLang, langToBcp47 } from '../lib/speech/voices'
 import type { LangCode } from '../types'
@@ -75,7 +74,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   const [panelOpen, setPanelOpen] = useState(false)
   const [chooserOpen, setChooserOpen] = useState(false)
   const [liveMessage, setLiveMessage] = useState('')
-  const [pageLang, setPageLangState] = useState<LangCode>(() => readTtsPrefs().pageLang)
+  const { lang: pageLang, setLang, t } = useLocale()
 
   useEffect(() => {
     const stored = readA11yPrefs()
@@ -95,10 +94,10 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     (mode: A11yMode) => {
       persist(mode === 'accessible' ? defaultAccessible : defaultStandard)
       setChooserOpen(false)
-      setLiveMessage(mode === 'accessible' ? 'Accessible mode on.' : 'Standard mode on.')
+      setLiveMessage(mode === 'accessible' ? t('live.accessibleOn') : t('live.standardOn'))
       if (mode === 'accessible') setPanelOpen(true)
     },
-    [persist],
+    [persist, t],
   )
 
   const patch = useCallback(
@@ -112,29 +111,29 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   const readPage = useCallback(() => {
     const parts = collectPageSegments()
     if (!parts.length) {
-      setLiveMessage('No readable content on this page.')
+      setLiveMessage(t('live.none'))
       return
     }
     const voice = bestVoiceForLang(page.voices, pageLang)
     page.voiceRef.current = voice?.voiceURI ?? null
-    setLiveMessage('Reading this page.')
+    setLiveMessage(t('live.reading'))
     page.play(parts.map((text, i) => ({ id: `p${i}`, text, lang: langToBcp47(pageLang) })))
-  }, [page, pageLang])
+  }, [page, pageLang, t])
 
   const pausePage = useCallback(() => {
     page.pause()
-    setLiveMessage('Page reading paused.')
-  }, [page])
+    setLiveMessage(t('live.paused'))
+  }, [page, t])
 
   const resumePage = useCallback(() => {
     page.resume()
-    setLiveMessage('Page reading resumed.')
-  }, [page])
+    setLiveMessage(t('live.resumed'))
+  }, [page, t])
 
   const stopPage = useCallback(() => {
     page.stop()
-    setLiveMessage('Page reading stopped.')
-  }, [page])
+    setLiveMessage(t('live.stopped'))
+  }, [page, t])
 
   useEffect(() => {
     page.stop()
@@ -158,33 +157,26 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       pageError: page.error,
       liveMessage,
       pageLang,
-      setPageLang: (lang: LangCode) => {
-        setPageLangState(lang)
-        writeTtsPrefs({ ...readTtsPrefs(), pageLang: lang })
-        setLiveMessage(
-          lang === 'om'
-            ? 'Page reading language: Afaan Oromo.'
-            : lang === 'am'
-              ? 'Page reading language: Amharic.'
-              : 'Page reading language: English.',
-        )
+      setPageLang: (next: LangCode) => {
+        setLang(next)
+        setLiveMessage(t('live.readingLang', { lang: t(`langs.${next}`) }))
       },
       chooseMode,
       setAccessible: (on) => {
         persist(on ? { ...(prefs ?? defaultAccessible), mode: 'accessible' } : { ...(prefs ?? defaultStandard), mode: 'standard' })
-        setLiveMessage(on ? 'Accessible mode on.' : 'Accessible mode off.')
+        setLiveMessage(on ? t('live.accessibleOn') : t('live.accessibleOff'))
       },
       setLargeText: (on) => {
         patch({ largeText: on, mode: 'accessible' })
-        setLiveMessage(on ? 'Larger text on.' : 'Larger text off.')
+        setLiveMessage(on ? t('live.largerOn') : t('live.largerOff'))
       },
       setHighContrast: (on) => {
         patch({ highContrast: on, mode: 'accessible' })
-        setLiveMessage(on ? 'High contrast on.' : 'High contrast off.')
+        setLiveMessage(on ? t('live.contrastOn') : t('live.contrastOff'))
       },
       setAutoSpeak: (on) => {
         patch({ autoSpeak: on, mode: 'accessible' })
-        setLiveMessage(on ? 'Pages will be read after you open them.' : 'Pages will not be read automatically.')
+        setLiveMessage(on ? t('live.autoOn') : t('live.autoOff'))
       },
       openPanel: () => setPanelOpen(true),
       closePanel: () => setPanelOpen(false),
@@ -215,6 +207,8 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       pausePage,
       resumePage,
       stopPage,
+      t,
+      setLang,
     ],
   )
 

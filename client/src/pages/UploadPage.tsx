@@ -5,11 +5,13 @@ import { Button } from '../components/common/Button'
 import { PageHeader } from '../components/common/ui'
 import { FileUploader, pickAndValidate } from '../components/documents/FileUploader'
 import { DocTypeSelector, LanguageSelector } from '../components/documents/LanguageSelector'
+import { useLocale } from '../context/LocaleContext'
 import { api } from '../services/api'
 import type { DocType, LangCode } from '../types'
 import type { FileKind } from '../lib/validateFile'
 
 export default function UploadPage() {
+  const { t } = useLocale()
   const nav = useNavigate()
   const [file, setFile] = useState<File | null>(null)
   const [kind, setKind] = useState<FileKind | null>(null)
@@ -53,11 +55,7 @@ export default function UploadPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <PageHeader
-        eyebrow="New document"
-        title="Upload a document"
-        description="PDF, JPG, or PNG, up to 10 MB. Translation does not start until you review the extracted text and click Continue."
-      />
+      <PageHeader eyebrow={t('upload.eyebrow')} title={t('upload.title')} description={t('upload.desc')} />
       <form onSubmit={onSubmit} className="space-y-5 rounded-2xl border border-line bg-surface p-5 sm:p-6">
         <FileUploader
           file={file}
@@ -71,19 +69,19 @@ export default function UploadPage() {
           disabled={busy}
         />
         <div className="grid gap-4 sm:grid-cols-2">
-          <LanguageSelector label="Source language" value={source} onChange={setSource} disabled={busy} />
+          <LanguageSelector label={t('upload.source')} value={source} onChange={setSource} disabled={busy} />
           <LanguageSelector
-            label="Target language"
+            label={t('upload.target')}
             value={target}
             onChange={setTarget}
             disabled={busy}
-            error={sameLang ? 'Source and target must be different.' : null}
+            error={sameLang ? t('upload.sameLang') : null}
           />
         </div>
         <DocTypeSelector value={docType} onChange={setDocType} disabled={busy} />
-        {error != null && <ErrorAlert title="Upload failed" error={error} />}
+        {error != null && <ErrorAlert title={t('upload.fail')} error={error} />}
         <Button type="submit" className="w-full" loading={busy} disabled={!file || sameLang}>
-          Continue to extraction review
+          {t('upload.continue')}
         </Button>
       </form>
     </div>

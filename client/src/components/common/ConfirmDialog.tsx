@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { useLocale } from '../../context/LocaleContext'
 import { Button, type ButtonVariant } from './Button'
 
 /** Modal confirmation built on <dialog>, so focus trapping and Escape come from the browser. */
@@ -21,6 +22,7 @@ export function ConfirmDialog({
   onConfirm: () => void
   onCancel: () => void
 }) {
+  const { t } = useLocale()
   const ref = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export function ConfirmDialog({
         {children && <div className="mt-2 text-sm text-ink-2">{children}</div>}
         <div className="mt-5 flex flex-wrap justify-end gap-2">
           <Button variant="secondary" onClick={onCancel} disabled={busy}>
-            Cancel
+            {t('a11y.cancel')}
           </Button>
           <Button variant={confirmVariant} onClick={onConfirm} loading={busy}>
             {confirmLabel}

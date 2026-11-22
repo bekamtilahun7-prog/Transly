@@ -20,8 +20,8 @@ export const FREE_ALLOWANCE = {
 
 /** Proposed org seat ranges — defaults only, not subscription architecture. */
 export const SEAT_DEFAULTS = {
-  team_pro: { min: 5, max: 25, default: 5, hint: '5–25 members' },
-  enterprise_premium: { min: 25, max: 500, default: 25, hint: '25+ members' },
+  team_pro: { min: 5, max: 25, default: 5, hint: '5–25' },
+  enterprise_premium: { min: 25, max: 500, default: 25, hint: '25+' },
 } as const
 
 export const ORG_ROLES = ['owner', 'administrator', 'editor', 'viewer'] as const

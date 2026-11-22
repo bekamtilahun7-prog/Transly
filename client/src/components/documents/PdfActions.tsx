@@ -1,5 +1,6 @@
 import { Check, Link2, Share2 } from 'lucide-react'
 import { useState } from 'react'
+import { useLocale } from '../../context/LocaleContext'
 import { Alert } from '../common/Alert'
 import { Button } from '../common/Button'
 
@@ -62,6 +63,7 @@ export function usePdfActions(url: string | null, filename: string) {
 
 /** Copy-link and (when the device supports it) native share. */
 export function ShareButtons({ link }: { link: string }) {
+  const { t } = useLocale()
   const [state, setState] = useState<'idle' | 'copied' | 'error'>('idle')
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
@@ -102,24 +104,24 @@ export function ShareButtons({ link }: { link: string }) {
           onClick={() => void copy()}
           icon={state === 'copied' ? <Check size={16} aria-hidden /> : <Link2 size={16} aria-hidden />}
         >
-          <span aria-live="polite">{state === 'copied' ? 'Link copied' : 'Copy share link'}</span>
+          <span aria-live="polite">{state === 'copied' ? t('flow.copiedLink') : t('flow.copyShare')}</span>
         </Button>
         {canShare && (
           <Button
             variant="secondary"
             icon={<Share2 size={16} aria-hidden />}
             onClick={() =>
-              navigator.share({ title: 'Transly verification', url: link }).catch((e: { name?: string }) => {
+              navigator.share({ title: t('flow.shareTitle'), url: link }).catch((e: { name?: string }) => {
                 if (e?.name !== 'AbortError') setState('error')
               })
             }
           >
-            Share
+            {t('ui.share')}
           </Button>
         )}
       </div>
       {state === 'error' && (
-        <Alert tone="error" title="Could not copy automatically">
+        <Alert tone="error" title={t('flow.copyFail')}>
           Select and copy the link manually: <span className="break-all font-mono text-xs">{link}</span>
         </Alert>
       )}

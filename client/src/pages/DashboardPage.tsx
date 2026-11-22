@@ -7,6 +7,7 @@ import { EmptyState, LoadingState } from '../components/common/LoadingState'
 import { Eyebrow } from '../components/common/ui'
 import { DocumentList } from '../components/documents/DocumentList'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
 import { LANGUAGES } from '../lib/constants'
 import { displayNameOf } from '../lib/format'
 import { api } from '../services/api'
@@ -75,6 +76,7 @@ function DashStat({
 }
 
 export default function DashboardPage() {
+  const { t } = useLocale()
   const { user } = useAuth()
   const name = displayNameOf(user?.email ?? '', user?.name)
   const [docs, setDocs] = useState<DocumentRecord[] | null>(null)
@@ -102,38 +104,36 @@ export default function DashboardPage() {
     <div className="space-y-5">
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_20.5rem]">
         <div className="min-w-0">
-          <Eyebrow>Welcome back!</Eyebrow>
+          <Eyebrow>{t('dash.welcome')}</Eyebrow>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-[34px]/10">
-            Hello, {name}! <span aria-hidden>👋</span>
+            {t('dash.hello', { name })} <span aria-hidden>👋</span>
           </h1>
-          <p className="mt-2 max-w-xl text-sm text-ink-2 sm:text-base">
-            Manage your documents, track progress, and more — all in one place.
-          </p>
+          <p className="mt-2 max-w-xl text-sm text-ink-2 sm:text-base">{t('dash.sub')}</p>
 
           {error != null && (
             <div className="mt-4">
-              <ErrorAlert title="Could not load your documents" error={error} onRetry={load} />
+              <ErrorAlert title={t('dash.loadFail')} error={error} onRetry={load} />
             </div>
           )}
 
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
             <DashStat
               icon={<Folder size={20} aria-hidden />}
-              label="Total Documents"
+              label={t('dash.total')}
               value={stats.total}
               card="bg-orange-50 dark:bg-orange-500/10"
               iconWrap="bg-white text-orange-500 shadow-sm dark:bg-elevated"
             />
             <DashStat
               icon={<CheckCircle2 size={20} aria-hidden />}
-              label="Completed"
+              label={t('dash.completed')}
               value={stats.completed}
               card="bg-sky-50 dark:bg-sky-500/10"
               iconWrap="bg-white text-sky-500 shadow-sm dark:bg-elevated"
             />
             <DashStat
               icon={<Clock3 size={20} aria-hidden />}
-              label="In Progress"
+              label={t('dash.progress')}
               value={stats.inProgress}
               card="bg-violet-50 dark:bg-violet-500/10"
               iconWrap="bg-white text-violet-500 shadow-sm dark:bg-elevated"
@@ -144,13 +144,13 @@ export default function DashboardPage() {
         <div className="rounded-2xl border border-line bg-surface p-5">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
             <Globe size={18} className="text-brand-ink" aria-hidden />
-            Supported Languages
+            {t('langs.kicker')}
           </h2>
           <ul className="mt-4 space-y-3.5">
             {LANGUAGES.map((l) => (
               <li key={l.code} className="flex items-center gap-3 text-sm">
                 <RoundFlag code={l.code} />
-                <span className="font-medium text-ink">{l.label}</span>
+                <span className="font-medium text-ink">{t(`langs.${l.code}`)}</span>
                 <span className="ml-auto text-xs text-ink-2">({l.code.toUpperCase()})</span>
               </li>
             ))}
@@ -162,27 +162,27 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-5">
           <h2 className="flex items-center gap-2 text-base font-semibold text-ink">
             <FileText size={18} className="text-brand-ink" aria-hidden />
-            Your Recent Documents
+            {t('dash.recent')}
           </h2>
           <Link
             to="/documents"
             className="inline-flex items-center gap-1 text-sm font-medium text-brand-ink transition duration-150 hover:text-orange-700"
           >
-            View All <ArrowRight size={16} aria-hidden />
+            {t('dash.viewAll')} <ArrowRight size={16} aria-hidden />
           </Link>
         </div>
-        {docs == null && error == null && <LoadingState label="Loading your documents…" className="py-10" />}
+        {docs == null && error == null && <LoadingState label={t('dash.loading')} className="py-10" />}
         {docs && docs.length === 0 && (
           <EmptyState
             icon={<Folder size={22} aria-hidden />}
-            title="No documents yet"
+            title={t('dash.noDocs')}
             action={
               <Link to="/documents/upload" className={buttonClass('primary', 'md')}>
-                Upload a document
+                {t('dash.upload')}
               </Link>
             }
           >
-            Upload a PDF, JPG, or PNG to start a translation.
+            {t('dash.empty')}
           </EmptyState>
         )}
         {recent.length > 0 && <DocumentList docs={recent} />}

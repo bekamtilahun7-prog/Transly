@@ -1,9 +1,5 @@
+import { useLocale } from '../../context/LocaleContext'
 import type { PricingCategory } from '../../lib/pricingCatalog'
-
-const OPTIONS: { id: PricingCategory; label: string }[] = [
-  { id: 'individual', label: 'Individual' },
-  { id: 'organization', label: 'Team & Enterprise' },
-]
 
 export function PricingCategorySelector({
   value,
@@ -12,13 +8,15 @@ export function PricingCategorySelector({
   value: PricingCategory
   onChange: (v: PricingCategory) => void
 }) {
+  const { t } = useLocale()
+  const options: { id: PricingCategory; label: string }[] = [
+    { id: 'individual', label: t('pricing.individual') },
+    { id: 'organization', label: t('pricing.team') },
+  ]
+
   return (
-    <div
-      role="tablist"
-      aria-label="Pricing category"
-      className="inline-flex rounded-full border border-line bg-bg-2 p-1"
-    >
-      {OPTIONS.map((opt) => {
+    <div role="tablist" aria-label={t('pricing.category')} className="inline-flex rounded-full border border-line bg-bg-2 p-1">
+      {options.map((opt) => {
         const active = value === opt.id
         return (
           <button

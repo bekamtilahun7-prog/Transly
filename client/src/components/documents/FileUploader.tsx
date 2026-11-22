@@ -1,5 +1,6 @@
 import { Camera, FileUp, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useLocale } from '../../context/LocaleContext'
 import { formatBytes } from '../../lib/format'
 import { validateFile, type FileKind } from '../../lib/validateFile'
 import { Alert } from '../common/Alert'
@@ -20,6 +21,7 @@ export function FileUploader({
   onClear: () => void
   disabled?: boolean
 }) {
+  const { t } = useLocale()
   const cameraRef = useRef<HTMLInputElement>(null)
   const pickRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -38,10 +40,10 @@ export function FileUploader({
     <div className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
         <Button type="button" variant="secondary" disabled={disabled} icon={<Camera size={18} />} onClick={() => cameraRef.current?.click()}>
-          Take a photo
+          {t('ui.photo')}
         </Button>
         <Button type="button" variant="secondary" disabled={disabled} icon={<FileUp size={18} />} onClick={() => pickRef.current?.click()}>
-          Choose a file
+          {t('ui.chooseFile')}
         </Button>
       </div>
       <input
@@ -65,7 +67,7 @@ export function FileUploader({
           e.target.value = ''
         }}
       />
-      {error && <Alert tone="error" title="File not accepted">{error}</Alert>}
+      {error && <Alert tone="error" title={t('ui.fileReject')}>{error}</Alert>}
       {file && (
         <div className="flex items-center gap-3 rounded-xl border border-line bg-bg-2 p-3">
           {preview ? (
@@ -84,7 +86,7 @@ export function FileUploader({
             type="button"
             onClick={onClear}
             disabled={disabled}
-            aria-label="Remove file"
+            aria-label={t('ui.removeFile')}
             className="flex size-9 items-center justify-center rounded-full text-ink-2 hover:bg-hover hover:text-ink"
           >
             <X size={16} />

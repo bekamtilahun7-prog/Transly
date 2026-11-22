@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { STATUS_LABEL, docTypeLabel, langLabel } from '../../lib/constants'
+import { useLocale } from '../../context/LocaleContext'
 import type { DocStatus, DocType, LangCode, ReviewStatus, VerifyResult } from '../../types'
 
 type BadgeTone = 'success' | 'warn' | 'danger' | 'info' | 'neutral' | 'brand' | 'violet'
@@ -35,9 +35,10 @@ const statusTone: Record<DocStatus, BadgeTone> = {
 
 /** documents.status as reported by the backend. */
 export function StatusBadge({ status }: { status: DocStatus }) {
+  const { t } = useLocale()
   return (
     <Badge tone={statusTone[status] ?? 'neutral'} dot>
-      {STATUS_LABEL[status] ?? status}
+      {t(`status.${status}`)}
     </Badge>
   )
 }
@@ -50,13 +51,15 @@ const typeTone: Record<DocType, BadgeTone> = {
 }
 
 export function DocTypeBadge({ type }: { type: DocType | null | undefined }) {
+  const { t } = useLocale()
   if (!type) return <span className="text-ink-2">—</span>
-  return <Badge tone={typeTone[type] ?? 'neutral'}>{docTypeLabel(type)}</Badge>
+  return <Badge tone={typeTone[type] ?? 'neutral'}>{t(`types.${type}`)}</Badge>
 }
 
 /** "AM → EN" chip; the full language names are available to screen readers and on hover. */
 export function LangPair({ source, target }: { source: LangCode; target: LangCode }) {
-  const full = `${langLabel(source)} to ${langLabel(target)}`
+  const { t } = useLocale()
+  const full = `${t(`langs.${source}`)} ${t('ui.to')} ${t(`langs.${target}`)}`
   return (
     <span
       title={full}
@@ -71,18 +74,19 @@ export function LangPair({ source, target }: { source: LangCode; target: LangCod
 }
 
 export function ReviewStatusBadge({ status }: { status: ReviewStatus | undefined }) {
-  if (status === 'human_reviewed') return <Badge tone="success">Human reviewed</Badge>
-  if (status === 'machine') return <Badge tone="warn">Machine translated, not human reviewed</Badge>
+  const { t } = useLocale()
+  if (status === 'human_reviewed') return <Badge tone="success">{t('status.human')}</Badge>
+  if (status === 'machine') return <Badge tone="warn">{t('status.machine')}</Badge>
   return <span className="text-ink-2">—</span>
 }
 
 const verifyTone: Record<VerifyResult, BadgeTone> = { valid: 'success', revoked: 'danger', not_found: 'warn' }
-const verifyText: Record<VerifyResult, string> = { valid: 'Valid', revoked: 'Revoked', not_found: 'Not found' }
-
 export function VerifyBadge({ result }: { result: VerifyResult }) {
+  const { t } = useLocale()
+  const label = result === 'not_found' ? t('status.notFound') : t(`status.${result}`)
   return (
     <Badge tone={verifyTone[result]} dot>
-      {verifyText[result]}
+      {label}
     </Badge>
   )
 }
