@@ -41,7 +41,7 @@ export function useDocumentReader({
     if (!queue.voices.length) return
     const saved = stored.voiceURIByLang[lang]
     const next = bestVoiceForLang(queue.voices, lang, saved)
-    setVoiceState(next?.voiceURI ?? queue.voices.find((v) => v.default)?.voiceURI ?? queue.voices[0]?.voiceURI ?? null)
+    setVoiceState(next?.voiceURI ?? null)
     queue.voiceRef.current = next?.voiceURI ?? null
     setVoiceReady(true)
   }, [lang, queue.voices, queue.voiceRef, stored.voiceURIByLang])

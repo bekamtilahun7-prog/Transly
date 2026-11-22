@@ -12,11 +12,15 @@ import { useSpeechQueue } from '../hooks/useSpeechQueue'
 import {
   applyA11yClasses,
   readA11yPrefs,
+  readTtsPrefs,
   writeA11yPrefs,
+  writeTtsPrefs,
   type A11yMode,
   type A11yPrefs,
 } from '../lib/speech/a11yPrefs'
 import { collectPageSegments } from '../lib/speech/pageContent'
+import { bestVoiceForLang, langToBcp47 } from '../lib/speech/voices'
+import type { LangCode } from '../types'
 
 interface A11yState {
   ready: boolean
@@ -29,6 +33,8 @@ interface A11yState {
   pageSupported: boolean
   pageError: string | null
   liveMessage: string
+  pageLang: LangCode
+  setPageLang: (lang: LangCode) => void
   chooseMode: (mode: A11yMode) => void
   setAccessible: (on: boolean) => void
   setLargeText: (on: boolean) => void
@@ -69,6 +75,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   const [panelOpen, setPanelOpen] = useState(false)
   const [chooserOpen, setChooserOpen] = useState(false)
   const [liveMessage, setLiveMessage] = useState('')
+  const [pageLang, setPageLangState] = useState<LangCode>(() => readTtsPrefs().pageLang)
 
   useEffect(() => {
     const stored = readA11yPrefs()
@@ -108,9 +115,11 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       setLiveMessage('No readable content on this page.')
       return
     }
+    const voice = bestVoiceForLang(page.voices, pageLang)
+    page.voiceRef.current = voice?.voiceURI ?? null
     setLiveMessage('Reading this page.')
-    page.play(parts.map((text, i) => ({ id: `p${i}`, text, lang: document.documentElement.lang || 'en' })))
-  }, [page])
+    page.play(parts.map((text, i) => ({ id: `p${i}`, text, lang: langToBcp47(pageLang) })))
+  }, [page, pageLang])
 
   const pausePage = useCallback(() => {
     page.pause()
@@ -148,6 +157,18 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       pageSupported: page.supported,
       pageError: page.error,
       liveMessage,
+      pageLang,
+      setPageLang: (lang: LangCode) => {
+        setPageLangState(lang)
+        writeTtsPrefs({ ...readTtsPrefs(), pageLang: lang })
+        setLiveMessage(
+          lang === 'om'
+            ? 'Page reading language: Afaan Oromo.'
+            : lang === 'am'
+              ? 'Page reading language: Amharic.'
+              : 'Page reading language: English.',
+        )
+      },
       chooseMode,
       setAccessible: (on) => {
         persist(on ? { ...(prefs ?? defaultAccessible), mode: 'accessible' } : { ...(prefs ?? defaultStandard), mode: 'standard' })
@@ -186,6 +207,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       page.supported,
       page.error,
       liveMessage,
+      pageLang,
       chooseMode,
       persist,
       patch,

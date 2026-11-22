@@ -1,3 +1,5 @@
+import type { LangCode } from '../../types'
+
 export type A11yMode = 'standard' | 'accessible'
 
 export interface A11yPrefs {
@@ -12,7 +14,12 @@ export const TTS_KEY = 'transly.tts.v1'
 
 export interface TtsPrefs {
   rate: number
+  pageLang: LangCode
   voiceURIByLang: Partial<Record<string, string>>
+}
+
+function isReadLang(v: unknown): v is LangCode {
+  return v === 'om' || v === 'am' || v === 'en'
 }
 
 export function readA11yPrefs(): A11yPrefs | null {
@@ -51,12 +58,16 @@ export function applyA11yClasses(p: A11yPrefs | null) {
 export function readTtsPrefs(): TtsPrefs {
   try {
     const raw = localStorage.getItem(TTS_KEY)
-    if (!raw) return { rate: 1, voiceURIByLang: {} }
+    if (!raw) return { rate: 1, pageLang: 'en', voiceURIByLang: {} }
     const p = JSON.parse(raw) as Partial<TtsPrefs>
     const rate = typeof p.rate === 'number' ? p.rate : 1
-    return { rate, voiceURIByLang: p.voiceURIByLang ?? {} }
+    return {
+      rate,
+      pageLang: isReadLang(p.pageLang) ? p.pageLang : 'en',
+      voiceURIByLang: p.voiceURIByLang ?? {},
+    }
   } catch {
-    return { rate: 1, voiceURIByLang: {} }
+    return { rate: 1, pageLang: 'en', voiceURIByLang: {} }
   }
 }
 

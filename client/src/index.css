@@ -272,6 +272,7 @@ button:disabled {
     animation-play-state: paused;
 }
 
+
 html.a11y-mode .home-loop,
 html.a11y-mode .home-loop::after {
     animation: none !important;

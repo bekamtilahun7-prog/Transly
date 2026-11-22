@@ -1,7 +1,8 @@
 import { Pause, Play, SkipBack, SkipForward, Square, Volume2 } from 'lucide-react'
 import { useEffect, type ReactNode } from 'react'
 import { useDocumentReader, type ReaderSide } from '../../hooks/useDocumentReader'
-import { langLabel } from '../../lib/constants'
+import { LANGUAGES, langLabel } from '../../lib/constants'
+import { voicesForLang } from '../../lib/speech/voices'
 import { TTS_RATES } from '../../lib/speech/speechManager'
 import type { Block, LangCode } from '../../types'
 import { Alert } from '../common/Alert'
@@ -113,7 +114,7 @@ export function DocumentListenPanel({
             Listen to Document
           </h2>
           <p className="mt-1 text-sm text-ink-2">
-            Hear the {langLabel(r.lang)} text in this browser. Speech stays on this device.
+            Hear the {langLabel(r.lang)} text. Voices are limited to Afaan Oromo, Amharic, and English.
           </p>
         </div>
         {r.canTranslate && (
@@ -213,23 +214,22 @@ export function DocumentListenPanel({
             onChange={(e) => r.changeVoice(e.target.value)}
             disabled={!r.supported || r.voices.length === 0}
           >
-            {r.voices.length === 0 && <option value="">No voices found</option>}
-            {r.matchingVoices.length > 0 && (
-              <optgroup label={`Suggested for ${langLabel(r.lang)}`}>
-                {r.matchingVoices.map((v) => (
-                  <option key={v.voiceURI} value={v.voiceURI}>
-                    {v.name} ({v.lang})
-                  </option>
-                ))}
-              </optgroup>
+            {r.voices.length === 0 && (
+              <option value="">No Afaan Oromo, Amharic, or English voice found</option>
             )}
-            <optgroup label="All installed voices">
-              {r.voices.map((v) => (
-                <option key={`all-${v.voiceURI}`} value={v.voiceURI}>
-                  {v.name} ({v.lang})
-                </option>
-              ))}
-            </optgroup>
+            {LANGUAGES.map((lang) => {
+              const list = voicesForLang(r.voices, lang.code)
+              if (!list.length) return null
+              return (
+                <optgroup key={lang.code} label={lang.label}>
+                  {list.map((v) => (
+                    <option key={v.voiceURI} value={v.voiceURI}>
+                      {v.name} ({v.lang})
+                    </option>
+                  ))}
+                </optgroup>
+              )
+            })}
           </select>
         </label>
       </div>

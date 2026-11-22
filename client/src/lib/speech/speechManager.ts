@@ -3,6 +3,8 @@
  * Page reading and document reading share this so they never speak at once.
  */
 
+import { filterTranslyVoices, isTranslyVoice } from './voices'
+
 export type SpeechOwner = 'page' | 'document'
 export type SpeechStatus = 'idle' | 'speaking' | 'paused'
 
@@ -100,7 +102,7 @@ function refreshVoices() {
   if (!s || typeof s.getVoices !== 'function') return
   let next: SpeechSynthesisVoice[] = []
   try {
-    next = s.getVoices() ?? []
+    next = filterTranslyVoices(s.getVoices() ?? [])
   } catch {
     return
   }
@@ -187,13 +189,12 @@ export function speakText(by: SpeechOwner, text: string, opts: SpeakOptions = {}
     u.rate = Math.min(2, Math.max(0.5, opts.rate ?? 1))
     u.pitch = 1
     u.volume = 1
+    const pool = voices.length ? voices : filterTranslyVoices(s.getVoices() ?? [])
     const uri = opts.voiceURI
-    if (uri) {
-      const v = (voices.length ? voices : s.getVoices()).find((voice) => voice.voiceURI === uri)
-      if (v) {
-        u.voice = v
-        if (!opts.lang) u.lang = v.lang
-      }
+    const chosen = uri ? pool.find((voice) => voice.voiceURI === uri && isTranslyVoice(voice)) : undefined
+    if (chosen) {
+      u.voice = chosen
+      if (!opts.lang) u.lang = chosen.lang
     }
     u.onstart = () => {
       if (gen !== generation) return

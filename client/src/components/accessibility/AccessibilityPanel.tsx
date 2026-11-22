@@ -1,6 +1,7 @@
 import { Pause, Play, Square, Volume2, X } from 'lucide-react'
 import { useEffect, useId, useRef } from 'react'
 import { useAccessibility } from '../../context/AccessibilityContext'
+import { LANGUAGES } from '../../lib/constants'
 import { Button } from '../common/Button'
 
 function Switch({
@@ -116,6 +117,22 @@ export function AccessibilityPanel() {
           <Volume2 size={16} aria-hidden />
           Read this page
         </p>
+        <p className="mb-2 text-xs text-ink-2">Voice language — Afaan Oromo, Amharic, or English only.</p>
+        <div className="mb-3 flex rounded-xl bg-bg-2 p-1" role="group" aria-label="Reading language">
+          {LANGUAGES.map((lang) => (
+            <button
+              key={lang.code}
+              type="button"
+              onClick={() => a.setPageLang(lang.code)}
+              aria-pressed={a.pageLang === lang.code}
+              className={`min-h-9 flex-1 rounded-lg px-2 text-xs font-semibold transition ${
+                a.pageLang === lang.code ? 'bg-brand text-white' : 'text-ink-2 hover:text-ink'
+              }`}
+            >
+              {lang.code === 'om' ? 'Or' : lang.code === 'am' ? 'Am' : 'En'}
+            </button>
+          ))}
+        </div>
         {!a.pageSupported && (
           <p className="mb-2 text-xs text-warn">This browser cannot read pages aloud.</p>
         )}
