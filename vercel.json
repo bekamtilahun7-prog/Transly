@@ -1,13 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "installCommand": "npm install --prefix server && npm install --prefix client",
+  "installCommand": "npm install && npm install --prefix server && npm install --prefix client",
   "buildCommand": "npm run build --prefix client",
   "outputDirectory": "client/dist",
   "functions": {
-    "server/api/extract.ts": { "maxDuration": 150 },
-    "server/api/translate.ts": { "maxDuration": 150 },
-    "server/api/tts.ts": { "maxDuration": 60 }
+    "api/extract.ts": { "maxDuration": 60 },
+    "api/translate.ts": { "maxDuration": 60 },
+    "api/tts.ts": { "maxDuration": 60 },
+    "api/issue/complete.ts": { "maxDuration": 30 }
   },
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }

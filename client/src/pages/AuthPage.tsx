@@ -130,13 +130,10 @@ export default function AuthPage({ mode }: { mode: 'login' | 'register' }) {
         nav(next, { replace: true })
       } else {
         const signedIn = await signUp(email.trim(), password, name.trim())
-        if (signedIn) nav(next, { replace: true })
-        else {
-          nav('/verify-otp', {
-            replace: true,
-            state: { email: email.trim(), purpose: 'signup', next, from: next },
-          })
+        if (!signedIn) {
+          throw new Error('Could not sign you in after creating the account. Try logging in.')
         }
+        nav(next, { replace: true })
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))

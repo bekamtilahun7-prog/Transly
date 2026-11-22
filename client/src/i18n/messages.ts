@@ -258,7 +258,7 @@ const en = {
     forgotSub: 'Enter the email on your account and we will send a verification code so you can choose a new password.',
     forgotFail: 'Could not start a reset',
     demoMode: 'Demo mode',
-    demoOtp: 'No email is sent. The next screen will show a 6-digit code you can type in.',
+    demoOtp: 'Local mock only: the next screen shows a 6-digit code. On the live app a real email is sent.',
     sendCode: 'Send code',
     otpTitle: 'Enter the',
     otpAccent: 'code',

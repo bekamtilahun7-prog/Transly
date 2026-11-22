@@ -1,7 +1,7 @@
 import { ArrowLeft, KeyRound, Mail } from 'lucide-react'
-import { useEffect, useId, useMemo, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { AuthShell, authInputClass } from '../components/auth/AuthShell'
+import { AuthShell } from '../components/auth/AuthShell'
 import { Alert } from '../components/common/Alert'
 import { Button } from '../components/common/Button'
 import { Logo } from '../components/common/Logo'
@@ -9,9 +9,13 @@ import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { USE_MOCKS } from '../lib/constants'
 import { peekOtp, type OtpPurpose } from '../lib/mockAccounts'
-import { afterAuthPath, hasCompletedPlanChoice } from '../lib/subscription'
+import { readResetEmail, writeResetEmail } from '../lib/resetEmail'
 
-type NavState = { email?: string; purpose?: OtpPurpose; next?: string }
+type NavState = { email?: string; purpose?: OtpPurpose }
+
+const otpCellClass =
+  'flex h-12 w-10 shrink-0 items-center justify-center rounded-xl border border-input-line bg-input ' +
+  'text-lg font-semibold tabular-nums text-ink sm:w-12'
 
 function OtpBoxes({
   value,
@@ -22,61 +26,37 @@ function OtpBoxes({
   onChange: (next: string) => void
   disabled?: boolean
 }) {
-  const refs = useRef<Array<HTMLInputElement | null>>([])
+  const inputRef = useRef<HTMLInputElement>(null)
   const digits = Array.from({ length: 6 }, (_, i) => value[i] ?? '')
-
-  function focusAt(i: number) {
-    refs.current[Math.max(0, Math.min(5, i))]?.focus()
-  }
-
-  function apply(next: string, focus?: number) {
-    onChange(next.replace(/\D/g, '').slice(0, 6))
-    if (typeof focus === 'number') requestAnimationFrame(() => focusAt(focus))
-  }
-
-  function onPaste(e: ClipboardEvent<HTMLInputElement>) {
-    e.preventDefault()
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
-    apply(pasted, pasted.length >= 6 ? 5 : pasted.length)
-  }
+  const active = Math.min(value.length, 5)
 
   return (
-    <div className="flex justify-center gap-2" role="group" aria-label="Six-digit verification code">
-      {digits.map((d, i) => (
-        <input
-          key={i}
-          ref={(el) => {
-            refs.current[i] = el
-          }}
-          className={`${authInputClass} h-12 w-11 px-0 text-center text-lg font-semibold tabular-nums sm:w-12`}
-          inputMode="numeric"
-          autoComplete={i === 0 ? 'one-time-code' : 'off'}
-          maxLength={1}
-          value={d}
-          disabled={disabled}
-          aria-label={`Digit ${i + 1}`}
-          onPaste={onPaste}
-          onChange={(e) => {
-            const ch = e.target.value.replace(/\D/g, '').slice(-1)
-            const next = value.slice(0, i) + ch + value.slice(i + 1)
-            apply(ch ? next.replace(/\s/g, '') : value.slice(0, i) + value.slice(i + 1), ch ? i + 1 : i)
-          }}
-          onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === 'Backspace' && !digits[i] && i > 0) {
-              e.preventDefault()
-              apply(value.slice(0, i - 1) + value.slice(i), i - 1)
-            }
-            if (e.key === 'ArrowLeft') {
-              e.preventDefault()
-              focusAt(i - 1)
-            }
-            if (e.key === 'ArrowRight') {
-              e.preventDefault()
-              focusAt(i + 1)
-            }
-          }}
-        />
-      ))}
+    <div className="relative">
+      <input
+        ref={inputRef}
+        id="otp-code"
+        className="absolute inset-0 z-10 cursor-text opacity-0"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        autoFocus
+        maxLength={6}
+        value={value}
+        disabled={disabled}
+        aria-label="Six-digit verification code"
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+      />
+      <div className="flex justify-center gap-1.5 sm:gap-2" aria-hidden="true">
+        {digits.map((d, i) => (
+          <div
+            key={i}
+            className={`${otpCellClass} ${
+              i === active && !disabled ? 'border-focus ring-2 ring-ring/60' : ''
+            }`}
+          >
+            {d || <span className="text-muted/40">·</span>}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -86,12 +66,13 @@ export default function VerifyOtpPage() {
   const { confirmOtp, resendOtp } = useAuth()
   const nav = useNavigate()
   const loc = useLocation()
-  const formId = useId()
   const state = (loc.state as NavState | null) ?? {}
-  const purpose: OtpPurpose = state.purpose === 'reset' ? 'reset' : 'signup'
-  const email = (state.email ?? '').trim()
-  const fallback = hasCompletedPlanChoice() ? '/dashboard' : afterAuthPath()
-  const next = state.next && !state.next.startsWith('/login') ? state.next : fallback
+  const purpose: OtpPurpose = 'reset'
+  const email = (state.email ?? readResetEmail()).trim()
+
+  useEffect(() => {
+    if (email) writeResetEmail(email)
+  }, [email])
 
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
@@ -109,7 +90,7 @@ export default function VerifyOtpPage() {
   }, [demo?.code, demo?.expiresAt])
 
   if (!email) {
-    return <Navigate to={purpose === 'reset' ? '/forgot-password' : '/register'} replace />
+    return <Navigate to="/forgot-password" replace />
   }
 
   const remainingMs = demo ? Math.max(0, demo.expiresAt - Date.now()) : 0
@@ -127,8 +108,7 @@ export default function VerifyOtpPage() {
     setInfo(null)
     try {
       await confirmOtp(email, raw, purpose)
-      if (purpose === 'signup') nav(next, { replace: true })
-      else nav('/reset-password', { replace: true, state: { email } })
+      nav('/reset-password', { replace: true, state: { email } })
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
       inflight.current = false
@@ -149,7 +129,7 @@ export default function VerifyOtpPage() {
       await resendOtp(email, purpose)
       setCode('')
       setTick((n) => n + 1)
-      setInfo(USE_MOCKS ? 'A new demo code is ready below.' : 'If an account exists, we sent a new code.')
+      setInfo(USE_MOCKS ? 'A new demo code is ready below.' : 'If that account exists, we sent a new code to your email.')
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -179,7 +159,6 @@ export default function VerifyOtpPage() {
       <p className="mt-2 max-w-sm text-center text-sm text-ink-2">{t('auth.otpSub', { email })}</p>
 
       <form
-        id={formId}
         onSubmit={onSubmit}
         className="mt-7 w-full rounded-2xl border border-line bg-surface p-5 shadow-[0px_16px_40px_rgba(124,48,0,0.08)] sm:p-6"
       >
@@ -197,7 +176,7 @@ export default function VerifyOtpPage() {
         )}
         {USE_MOCKS && demo && (
           <div className="mb-4">
-            <Alert tone="info" title="Demo code (no email is sent)">
+            <Alert tone="info" title="Demo code (local mock — no SMTP)">
               Use <span className="font-semibold tabular-nums tracking-[0.3em]">{demo.code}</span>
               {remainingMs > 0 ? ` · expires in about ${remainingMin} min` : ' · expired, send a new one'}.
             </Alert>
@@ -206,7 +185,7 @@ export default function VerifyOtpPage() {
         {!USE_MOCKS && (
           <div className="mb-4">
             <Alert tone="info" title="Check your inbox">
-              Six-digit codes are for the local demo. With live auth, open the link in your email instead.
+              We emailed a 6-digit Transly code. It can take a minute. Check spam if you do not see it.
             </Alert>
           </div>
         )}
@@ -244,11 +223,11 @@ export default function VerifyOtpPage() {
         </p>
 
         <Link
-          to={purpose === 'reset' ? '/forgot-password' : '/register'}
+          to="/forgot-password"
           className="mt-5 flex min-h-10 items-center justify-center gap-1.5 text-sm text-ink-2 transition hover:text-ink"
         >
           <ArrowLeft size={16} aria-hidden />
-          {purpose === 'reset' ? t('auth.forgot') : t('auth.signUp')}
+          {t('auth.forgot')}
         </Link>
       </form>
     </AuthShell>

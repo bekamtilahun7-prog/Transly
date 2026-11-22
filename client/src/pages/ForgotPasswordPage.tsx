@@ -8,6 +8,7 @@ import { Logo } from '../components/common/Logo'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { USE_MOCKS } from '../lib/constants'
+import { writeResetEmail } from '../lib/resetEmail'
 
 export default function ForgotPasswordPage() {
   const { t } = useLocale()
@@ -23,8 +24,10 @@ export default function ForgotPasswordPage() {
     setError(null)
     setBusy(true)
     try {
-      await requestPasswordReset(email.trim())
-      nav('/verify-otp', { replace: true, state: { email: email.trim(), purpose: 'reset' } })
+      const trimmed = email.trim()
+      await requestPasswordReset(trimmed)
+      writeResetEmail(trimmed)
+      nav('/verify-otp', { replace: true, state: { email: trimmed, purpose: 'reset' } })
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {

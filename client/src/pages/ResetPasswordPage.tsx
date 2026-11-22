@@ -7,16 +7,17 @@ import { Button } from '../components/common/Button'
 import { Logo } from '../components/common/Logo'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
+import { USE_MOCKS } from '../lib/constants'
 
 type NavState = { email?: string }
 
 export default function ResetPasswordPage() {
   const { t } = useLocale()
-  const { completePasswordReset } = useAuth()
+  const { completePasswordReset, user } = useAuth()
   const nav = useNavigate()
   const loc = useLocation()
   const ids = { password: useId(), confirm: useId() }
-  const email = ((loc.state as NavState | null)?.email ?? '').trim()
+  const email = ((loc.state as NavState | null)?.email ?? user?.email ?? '').trim()
 
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -24,7 +25,8 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null)
   const [confirmError, setConfirmError] = useState<string | null>(null)
 
-  if (!email) return <Navigate to="/forgot-password" replace />
+  if (!email && USE_MOCKS) return <Navigate to="/forgot-password" replace />
+  if (!email && !user) return <Navigate to="/forgot-password" replace />
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()

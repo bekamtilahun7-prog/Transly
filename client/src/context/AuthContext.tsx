@@ -3,18 +3,16 @@ import { supabase } from '../lib/supabase'
 import { USE_MOCKS } from '../lib/constants'
 import {
   allowPasswordReset,
-  clearPendingSignup,
   consumeOtp,
   getAccount,
-  getPendingSignup,
   issueOtp,
   mockRoleFor,
-  setPendingSignup,
   takePasswordResetAllowance,
   upsertAccount,
   verifyPassword,
   type OtpPurpose,
 } from '../lib/mockAccounts'
+import { clearResetEmail } from '../lib/resetEmail'
 import { api } from '../services/api'
 import type { AuthUser, Role } from '../types'
 
@@ -24,7 +22,7 @@ interface AuthState {
   loading: boolean
   profileError: string | null
   signIn(email: string, password: string, name?: string): Promise<void>
-  /** Resolves true if signed in immediately, false if OTP / email confirmation is required. */
+  /** Creates the account and signs in. OTP is not used for registration. */
   signUp(email: string, password: string, name?: string): Promise<boolean>
   signOut(): Promise<void>
   requestPasswordReset(email: string): Promise<void>
@@ -143,18 +141,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (getAccount(email)) {
           throw new Error('An account with this email already exists. Log in, or use Forgot password.')
         }
-        setPendingSignup({ email, password, name: name?.trim() || email.split('@')[0] || 'User' })
-        issueOtp(email, 'signup')
-        return false
+        const display = name?.trim() || email.split('@')[0] || 'User'
+        upsertAccount({
+          email,
+          password,
+          name: display,
+          role: mockRoleFor(email),
+        })
+        applyMockUser(email, display)
+        return true
       }
       if (!supabase) throw new Error('Supabase is not configured (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).')
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: name?.trim() || undefined } },
+        options: {
+          data: { full_name: name?.trim() || undefined },
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
       })
       if (error) throw new Error(error.message)
-      return !!data.session
+      if (data.session) return true
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInError) {
+        throw new Error(
+          'The account was created, but email confirmation is still on in Supabase, so you cannot sign in yet. Turn off Confirm email in Authentication → Providers, then log in.',
+        )
+      }
+      return true
     }
 
     const signOut: AuthState['signOut'] = async () => {
@@ -170,46 +184,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    const sendResetEmail = async (email: string) => {
+      if (!supabase) throw new Error('Password reset needs the real auth service. It is not connected in this build.')
+      const redirectTo = `${window.location.origin}/reset-password`
+      try {
+        const res = await fetch('/api/auth/forgot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, redirectTo }),
+        })
+        if (res.ok) return
+      } catch {
+        /* fall through to the browser client */
+      }
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
+      if (error) throw new Error(error.message)
+    }
+
     const requestPasswordReset: AuthState['requestPasswordReset'] = async (email) => {
       if (USE_MOCKS) {
         if (!getAccount(email)) throw new Error('No account was found for that email in this browser.')
         issueOtp(email, 'reset')
         return
       }
-      if (!supabase) throw new Error('Password reset needs the real auth service. It is not connected in this build.')
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      })
-      if (error) throw new Error(error.message)
+      await sendResetEmail(email)
     }
 
     const confirmOtp: AuthState['confirmOtp'] = async (email, code, purpose) => {
-      if (!USE_MOCKS) {
-        throw new Error('Six-digit codes are used in demo mode. Open the link in your email instead.')
+      if (purpose !== 'reset') {
+        throw new Error('Verification codes are only used to reset a password.')
       }
-      const result = consumeOtp(email, purpose, code)
-      if (result === 'expired') throw new Error('That code has expired. Send a new one.')
-      if (result === 'mismatch') throw new Error('That code is not correct. Check it and try again.')
-      if (purpose === 'signup') {
-        const pending = getPendingSignup()
-        if (!pending || pending.email !== email.trim().toLowerCase()) {
-          throw new Error('We could not find the account you started. Register again.')
-        }
-        upsertAccount({
-          email: pending.email,
-          password: pending.password,
-          name: pending.name,
-          role: mockRoleFor(pending.email),
-        })
-        clearPendingSignup()
-        applyMockUser(pending.email, pending.name)
+      if (!USE_MOCKS) {
+        if (!supabase) throw new Error('Password reset needs the real auth service. It is not connected in this build.')
+        const token = code.trim()
+        const address = email.trim()
+        const recovery = await supabase.auth.verifyOtp({ email: address, token, type: 'recovery' })
+        if (!recovery.error) return
+        const emailOtp = await supabase.auth.verifyOtp({ email: address, token, type: 'email' })
+        if (emailOtp.error) throw new Error(recovery.error.message || emailOtp.error.message)
         return
       }
+      const result = consumeOtp(email, 'reset', code)
+      if (result === 'expired') throw new Error('That code has expired. Send a new one.')
+      if (result === 'mismatch') throw new Error('That code is not correct. Check it and try again.')
       allowPasswordReset(email)
     }
 
     const completePasswordReset: AuthState['completePasswordReset'] = async (email, password) => {
-      if (!USE_MOCKS) throw new Error('Set a new password from the link in your email when auth is connected.')
+      if (!USE_MOCKS) {
+        if (!supabase) throw new Error('Password reset needs the real auth service. It is not connected in this build.')
+        const { error } = await supabase.auth.updateUser({ password })
+        if (error) throw new Error(error.message)
+        await supabase.auth.signOut()
+        clearResetEmail()
+        return
+      }
       if (!takePasswordResetAllowance(email)) {
         throw new Error('Verify the code sent to your email before choosing a new password.')
       }
@@ -219,10 +248,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const resendOtp: AuthState['resendOtp'] = async (email, purpose) => {
-      if (!USE_MOCKS) return
-      if (purpose === 'reset' && !getAccount(email)) throw new Error('No account was found for that email.')
-      if (purpose === 'signup' && !getPendingSignup()) throw new Error('Start registration again to get a new code.')
-      issueOtp(email, purpose)
+      if (purpose !== 'reset') return
+      if (USE_MOCKS) {
+        if (!getAccount(email)) throw new Error('No account was found for that email.')
+        issueOtp(email, 'reset')
+        return
+      }
+      await sendResetEmail(email)
     }
 
     return {

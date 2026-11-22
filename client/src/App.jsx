@@ -66,9 +66,9 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/verify-otp" element={<VerifyOtpPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
+      <Route path="/verify-otp" element={<VerifyOtpPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route element={<PublicShell />}>
         <Route path="/v/:id" element={<VerificationPage />} />
         <Route path="/pricing" element={<PricingPage />} />

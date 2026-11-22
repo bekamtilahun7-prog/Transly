@@ -1,0 +1,9 @@
+Demo
+.git
+**/node_modules
+**/*.mp4
+**/*.webm
+agent-transcripts
+.cursor
+server/scripts/_probe_schema.mjs
+server/scripts/_deploy_*.mjs
