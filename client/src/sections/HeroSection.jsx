@@ -21,8 +21,8 @@ export default function HeroSection() {
         className="home-loop home-loop-orb-alt pointer-events-none absolute left-1/2 top-72 size-40 rounded-full bg-orange-100/70 blur-2xl"
       />
 
-      <div className="relative grid items-center gap-10 px-6 pb-20 pt-32 md:px-16 md:pt-40 lg:px-24 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] xl:gap-8 xl:px-32">
-        <div className="flex flex-col items-center text-center xl:items-start xl:text-left">
+      <div className="relative grid items-center gap-8 px-6 pb-16 pt-20 md:grid-cols-2 md:gap-8 md:px-16 md:pt-24 lg:px-24 lg:pt-28 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] xl:px-32">
+        <div className="flex flex-col items-center text-center md:items-start md:text-left">
           <a
             href="#features"
             className="flex items-center gap-2 rounded-full bg-orange-50 px-3.5 py-1.5 text-xs font-medium text-orange-800 transition hover:bg-orange-100"
@@ -30,12 +30,12 @@ export default function HeroSection() {
             <span className="home-loop home-loop-pulse size-2 rounded-full bg-orange-500" />
             {t("hero.badge")}
           </a>
-          <h1 className="mt-5 text-[40px]/12 font-semibold tracking-tight text-ink md:text-[54px]/16 xl:text-[44px]/14 min-[1440px]:text-[50px]/16">
+          <h1 className="mt-4 text-[32px]/10 font-semibold tracking-tight text-ink sm:text-[38px]/11 md:text-[36px]/11 lg:text-[42px]/13 xl:text-[46px]/14">
             {t("hero.title1")}
             <span className="block text-orange-500">{t("hero.title2")}</span>
           </h1>
           <p className="mt-5 max-w-lg text-base/7 text-ink-2">{t("hero.body")}</p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 xl:justify-start">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 md:justify-start">
             <Link
               to="/register"
               className="home-loop home-loop-shine flex items-center gap-2 rounded-full bg-orange-500 px-7 py-3.5 font-medium text-white shadow-lg shadow-orange-500/30 transition hover:bg-orange-600 active:bg-orange-700"

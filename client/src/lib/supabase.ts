@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-const url = import.meta.env.VITE_SUPABASE_URL
-const anon = import.meta.env.VITE_SUPABASE_ANON_KEY
+const url = String(import.meta.env.VITE_SUPABASE_URL ?? '').trim()
+const anon = String(import.meta.env.VITE_SUPABASE_ANON_KEY ?? '').trim()
 
 // Anon key only. Service-role and Gemini keys must never be in frontend code.
 export const supabase: SupabaseClient | null = url && anon ? createClient(url, anon) : null

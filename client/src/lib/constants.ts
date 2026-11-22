@@ -1,6 +1,17 @@
 import type { BlockType, DocStatus, DocType, LangCode } from '../types'
 
-export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true'
+const supabaseUrl = String(import.meta.env.VITE_SUPABASE_URL ?? '').trim()
+const supabaseAnon = String(import.meta.env.VITE_SUPABASE_ANON_KEY ?? '').trim()
+
+/** Both browser-safe Supabase values must be present before we leave demo auth. */
+export const SUPABASE_CONFIGURED = supabaseUrl.length > 0 && supabaseAnon.length > 0
+
+/**
+ * localStorage demo backend. Forced on when URL or anon key is missing so
+ * register/login cannot call a half-configured Supabase client.
+ */
+export const USE_MOCKS =
+  String(import.meta.env.VITE_USE_MOCKS ?? '').trim().toLowerCase() === 'true' || !SUPABASE_CONFIGURED
 
 export const LANGUAGES: { code: LangCode; label: string; native: string }[] = [
   { code: 'om', label: 'Afaan Oromo', native: 'Afaan Oromoo' },

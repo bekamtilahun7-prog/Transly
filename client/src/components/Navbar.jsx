@@ -19,11 +19,11 @@ export default function Navbar() {
 
   useEffect(() => {
     if (openMobileMenu) {
-      document.body.classList.add("max-md:overflow-hidden");
+      document.body.classList.add("max-xl:overflow-hidden");
     } else {
-      document.body.classList.remove("max-md:overflow-hidden");
+      document.body.classList.remove("max-xl:overflow-hidden");
     }
-    return () => document.body.classList.remove("max-md:overflow-hidden");
+    return () => document.body.classList.remove("max-xl:overflow-hidden");
   }, [openMobileMenu]);
 
   return (
@@ -31,10 +31,10 @@ export default function Navbar() {
       data-no-speak
       className={`flex items-center justify-between fixed z-50 top-0 w-full px-6 md:px-16 lg:px-24 xl:px-32 py-4 border-b border-line bg-bg/70 ${openMobileMenu ? "bg-bg/90" : "backdrop-blur"}`}
     >
-      <Link to="/" aria-label={t("nav.home")} className="text-ink">
+      <Link to="/" aria-label={t("nav.home")} className="relative z-10 shrink-0 text-ink">
         <Logo size={34} />
       </Link>
-      <div className="hidden items-center md:gap-8 lg:gap-9 font-medium md:flex">
+      <div className="hidden items-center gap-6 font-medium xl:flex xl:gap-8">
         {links.map((link) => (
           <a
             key={link.name}
@@ -47,7 +47,7 @@ export default function Navbar() {
       </div>
       {/* Mobile menu */}
       <div
-        className={`fixed inset-0 flex flex-col items-center justify-center gap-6 text-lg font-medium bg-bg/95 text-ink backdrop-blur-md md:hidden transition duration-300 ${openMobileMenu ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-0 flex flex-col items-center justify-center gap-6 text-lg font-medium bg-bg/95 text-ink backdrop-blur-md xl:hidden transition duration-300 ${openMobileMenu ? "translate-x-0" : "-translate-x-full"}`}
         aria-hidden={!openMobileMenu}
         inert={!openMobileMenu}
       >
@@ -100,7 +100,7 @@ export default function Navbar() {
           onClick={() => setOpenMobileMenu(!openMobileMenu)}
           aria-label={t("nav.openMenu")}
           aria-expanded={openMobileMenu}
-          className="md:hidden"
+          className="xl:hidden"
         >
           <MenuIcon size={26} className="active:scale-90 transition" />
         </button>
