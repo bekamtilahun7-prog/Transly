@@ -1,4 +1,4 @@
-# Transly
+# Transly.
 
 **Document translation between Afaan Oromo, Amharic, and English — extract, review, issue, and verify.**
 
